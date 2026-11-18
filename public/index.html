@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SCRUM CITY · tuneando el equipo SOLTI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Rubik:wght@400;600;800&family=Yellowtail&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#110724; --panel:#1C0F3A; --panel2:#241351; --line:#3A2763;
+  --ink:#F5EEFF; --ink2:#B7A5D6;
+  --pink:#FF2E88; --orange:#FF8A3D; --gold:#FFC857; --purple:#C26BFF; --violet:#7A3BFF;
+  --cyan:#2EE6D6; --red:#FF4D6A; --green:#7CFFB2;
+  --title:Anton,"Arial Black",Impact,sans-serif;
+  --script:Yellowtail,"Segoe Script",cursive;
+  --body:Rubik,"Segoe UI",system-ui,-apple-system,sans-serif;
+  --mono:ui-monospace,"Cascadia Mono",Consolas,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--body); font-size:18px; line-height:1.4;
+  overflow:hidden;
+  background-image:radial-gradient(1200px 500px at 50% -120px,#3D1466 0%,transparent 70%);
+}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+/* ---------------- estructura ---------------- */
+#app{display:grid;grid-template-rows:auto minmax(0,1fr) auto;height:100%}
+#stage{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);gap:16px;padding:12px 18px;min-height:0}
+#bay,#panel{min-height:0;min-width:0}
+#panel{overflow:auto;padding-right:6px;display:grid;gap:12px;align-content:start}
+#bay{display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:8px;min-height:0}
+/* modo lectura: la pantalla se ve igual, pero no se toca */
+body.lectura #bMenu{display:none}
+body.lectura #panel button,body.lectura #panel input,body.lectura #panel textarea{opacity:.38;pointer-events:none}
+body.lectura #bench .big{opacity:.4}
+@media (max-width:1100px){#stage{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}#bay{display:none}}
+
+/* ---------------- HUD ---------------- */
+#hud{display:flex;align-items:center;gap:14px;padding:10px 18px 6px;border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(61,20,102,.55),transparent)}
+.brand{display:grid;line-height:1}
+.brand .t{font-family:var(--title);font-size:27px;letter-spacing:.5px;
+  background:linear-gradient(92deg,var(--gold),var(--orange) 40%,var(--pink) 72%,var(--purple));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.brand .s{font-family:var(--script);font-size:19px;color:var(--pink);text-shadow:0 0 12px rgba(255,46,136,.75);margin-top:2px}
+
+/* carretera de rondas */
+#track{flex:1;display:flex;align-items:center;gap:0;min-width:0}
+.stop{flex:1;display:grid;justify-items:center;gap:5px;position:relative;min-width:0}
+.stop::before{content:"";position:absolute;top:9px;left:0;right:0;height:3px;background:repeating-linear-gradient(90deg,var(--line) 0 10px,transparent 10px 18px)}
+.stop i{width:20px;height:20px;border-radius:50%;background:var(--panel);border:2px solid var(--line);position:relative;z-index:1}
+.stop span{font-size:11px;letter-spacing:.7px;color:var(--ink2);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.stop.done i{background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 10px var(--cyan)}
+.stop.now i{background:var(--pink);border-color:#fff;box-shadow:0 0 16px var(--pink);transform:scale(1.35)}
+.stop.now span{color:#fff;font-weight:800}
+
+.hudbtns{display:flex;align-items:center;gap:8px}
+.ico{background:var(--panel);border:1px solid var(--line);border-radius:10px;width:40px;height:40px;font-size:18px;cursor:pointer;display:grid;place-items:center}
+.ico:hover{border-color:var(--purple)}
+.ico.on{background:var(--violet);border-color:var(--purple)}
+#clock{font-family:var(--mono);font-size:30px;font-weight:700;color:var(--green);text-shadow:0 0 14px rgba(124,255,178,.6);min-width:104px;text-align:center}
+#clock.low{color:var(--gold);text-shadow:0 0 14px rgba(255,200,87,.8)}
+#clock.zero{color:var(--red);text-shadow:0 0 14px rgba(255,77,106,.8)}
+.count{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:5px 11px;text-align:center;line-height:1.15}
+.count b{display:block;font-family:var(--title);font-size:22px;color:var(--cyan)}
+.count span{font-size:10px;letter-spacing:.8px;color:var(--ink2);text-transform:uppercase}
+
+/* ---------------- banca inferior ---------------- */
+#bench{display:flex;align-items:center;gap:14px;padding:9px 18px;border-top:1px solid var(--line);background:rgba(28,15,58,.6)}
+#bolts{display:flex;gap:7px}
+.bolt{width:26px;height:26px;border-radius:50%;border:2px dashed var(--line);display:grid;place-items:center;font-size:13px;color:var(--ink2)}
+.bolt.on{border:2px solid var(--cyan);background:rgba(46,230,214,.16);color:var(--cyan);box-shadow:0 0 10px rgba(46,230,214,.5)}
+#hint{color:var(--ink2);font-size:15px;flex:1;min-width:0}
+.big{font-family:var(--title);letter-spacing:.5px;border:0;border-radius:12px;padding:13px 22px;font-size:20px;cursor:pointer;
+  background:linear-gradient(92deg,var(--pink),var(--orange));color:#2A0616;box-shadow:0 0 22px rgba(255,46,136,.45)}
+.big:hover{filter:brightness(1.1)}
+.big.ghost{background:var(--panel);color:var(--ink);border:1px solid var(--line);box-shadow:none}
+.big[disabled]{opacity:.4;cursor:not-allowed;box-shadow:none}
+.big.pulse{animation:pulse 1.5s ease-in-out infinite}
+
+/* ---------------- tarjetas del panel ---------------- */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+.card h2{font-family:var(--title);font-size:25px;margin:0 0 4px;letter-spacing:.4px;
+  background:linear-gradient(92deg,var(--gold),var(--orange) 45%,var(--pink) 78%,var(--purple));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.card h3{font-family:var(--title);font-size:19px;margin:0 0 6px;color:var(--ink);letter-spacing:.4px}
+.card p{margin:0 0 6px;color:var(--ink2);font-size:16px}
+.tag{display:inline-block;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);
+  border:1px solid var(--gold);border-radius:999px;padding:2px 9px;margin-bottom:6px}
+.tag.c{color:var(--cyan);border-color:var(--cyan)}
+.tag.r{color:var(--red);border-color:var(--red)}
+
+/* barras de votos */
+.bars{display:grid;gap:7px}
+.row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.bar{position:relative;background:var(--panel2);border:1px solid var(--line);border-radius:11px;overflow:hidden;min-height:46px;display:flex;align-items:center}
+.bar .fill{position:absolute;inset:0 auto 0 0;background:linear-gradient(92deg,rgba(122,59,255,.85),rgba(255,46,136,.8));transition:width .5s cubic-bezier(.2,.9,.2,1)}
+.bar.lead .fill{background:linear-gradient(92deg,var(--violet),var(--pink) 60%,var(--orange))}
+.bar .lbl{position:relative;padding:7px 12px;display:grid;gap:1px}
+.bar .lbl b{font-size:19px;font-weight:800}
+.bar .lbl small{color:#E7DBFF;font-size:13px}
+.bar .n{position:relative;margin-left:auto;padding-right:12px;font-family:var(--title);font-size:24px}
+.bar.lead .n{color:var(--gold)}
+.pm{display:grid;gap:3px}
+.pm button{width:30px;height:21px;border-radius:7px;background:var(--panel2);border:1px solid var(--line);cursor:pointer;font-size:13px;line-height:1;padding:0}
+.pm button:hover{border-color:var(--purple)}
+
+/* reglas del taller */
+.rules{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rule{background:var(--panel2);border:1px solid var(--line);border-left:4px solid var(--pink);border-radius:11px;padding:9px 11px;font-size:16px;font-weight:600}
+.rule i{font-family:var(--title);color:var(--gold);margin-right:7px;font-style:normal}
+
+/* QR */
+.qrwrap{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.qrwrap.grande{gap:22px}
+.qr{background:#fff;padding:12px;border-radius:14px;width:168px;height:168px;display:grid;place-items:center;flex:none;
+  box-shadow:0 0 0 4px rgba(255,255,255,.16),0 10px 30px rgba(0,0,0,.45)}
+.qr svg{width:100%;height:100%;display:block}
+.qrwrap .u{font-family:var(--mono);font-size:15px;color:var(--cyan);word-break:break-all}
+.qrwrap.grande .u{font-size:19px;font-weight:700}
+
+/* ideas del taller */
+.bay{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px 14px;display:grid;gap:8px}
+.bay.ok{border-color:var(--cyan);box-shadow:0 0 0 1px rgba(46,230,214,.35) inset}
+.bay>header{display:flex;align-items:center;gap:9px}
+.bay>header .nm{font-family:var(--title);font-size:21px;letter-spacing:.4px}
+.bay>header .mn{color:var(--ink2);font-size:14px}
+.idea{display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;background:var(--panel2);
+  border:1px solid var(--line);border-radius:11px;padding:8px 10px;font-size:16px}
+.idea.win{border-color:var(--cyan);background:rgba(46,230,214,.1)}
+.idea.lead{border-color:var(--gold)}
+.idea .mas{display:block;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin-top:2px}
+.idea .favs{font-family:var(--title);font-size:17px;color:var(--gold);min-width:34px;text-align:center}
+.idea .acts{display:flex;gap:5px}
+.idea .acts button{border:1px solid var(--line);background:var(--panel);border-radius:9px;padding:5px 9px;font-size:13px;cursor:pointer;white-space:nowrap}
+.idea .acts button.go{border-color:var(--cyan);color:var(--cyan)}
+.idea .acts button:hover{border-color:var(--purple)}
+.empty{color:var(--ink2);font-size:15px;font-style:italic;padding:6px 2px}
+
+/* campos de texto */
+.ot{display:grid;gap:7px}
+.ot .f{display:grid;grid-template-columns:118px 1fr;gap:9px;align-items:center}
+.ot label{font-size:13px;letter-spacing:.6px;text-transform:uppercase;color:var(--ink2)}
+.ot input{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--ink);font:inherit;font-size:17px;width:100%}
+.ot input:focus{border-color:var(--pink);outline:none}
+.ot .done{color:var(--cyan)}
+
+/* notas del buzón */
+.notes{display:flex;flex-wrap:wrap;gap:9px}
+.note{background:linear-gradient(160deg,#FFE9A8,#FFC857);color:#3A1D00;border-radius:11px;padding:10px 12px;
+  font-size:16px;font-weight:600;max-width:320px;position:relative;box-shadow:0 7px 16px rgba(0,0,0,.35);transform:rotate(-1deg)}
+.note:nth-child(even){transform:rotate(1.2deg);background:linear-gradient(160deg,#FFD2E6,#FF8FC0)}
+.note button{position:absolute;top:-8px;right:-8px;width:23px;height:23px;border-radius:50%;border:0;background:#2A0616;color:#fff;cursor:pointer;font-size:13px;line-height:1;padding:0}
+.anim-in{animation:pop .45s cubic-bezier(.2,1.4,.4,1)}
+.quien{display:inline-flex;align-items:center;gap:7px;background:var(--panel2);border:1px solid var(--cyan);
+  color:var(--cyan);border-radius:999px;padding:6px 12px;font-size:16px;font-weight:700}
+.quien button{border:0;background:none;color:var(--ink2);cursor:pointer;font-size:13px;padding:0;line-height:1}
+.quien button:hover{color:var(--red)}
+
+/* resumen final */
+.sum{display:grid;gap:9px}
+.sum .line{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:10px 12px}
+.sum .line b{font-family:var(--title);color:var(--gold);font-size:17px;letter-spacing:.4px}
+.road3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.road3 div{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:9px;text-align:center}
+.road3 b{display:block;font-family:var(--title);font-size:21px;color:var(--cyan)}
+.road3 span{font-size:13px;color:var(--ink2)}
+
+/* placa del vehículo */
+.placa{display:flex;align-items:center;gap:12px;justify-content:center}
+.placa .box{background:linear-gradient(180deg,#F7F2FC,#D9C9F2);color:#1A0B33;border-radius:9px;padding:5px 15px;
+  font-family:var(--title);font-size:27px;letter-spacing:2px;border:3px solid #fff;box-shadow:0 0 22px rgba(255,46,136,.5)}
+.placa .q{font-family:var(--title);font-size:21px;color:var(--ink2);letter-spacing:1px}
+.placa .mini{width:84px;height:48px;flex:none}
+.placa .mini svg.sil{width:100%;height:100%}
+.placa .mini svg.sil path,.placa .mini svg.sil circle,.placa .mini svg.sil line,.placa .mini svg.sil rect{
+  stroke:var(--cyan);stroke-width:8;filter:drop-shadow(0 0 7px rgba(46,230,214,.85))}
+#bayfoot{text-align:center;color:var(--ink2);font-size:14px;min-height:20px}
+.sinpieza{margin-top:10px;color:var(--gold);font-size:16px;line-height:1.45;
+  border-left:3px solid var(--gold);padding-left:11px}
+
+/* ---------------- el vehículo ---------------- */
+#carbox{display:grid;place-items:center;min-height:0;position:relative}
+svg.car,svg.sil{width:100%;height:100%;max-height:100%;display:block}
+svg.car .chassis{fill:rgba(17,7,36,.85);stroke:var(--purple);stroke-width:4}
+svg.car .frame{fill:none;stroke:var(--purple);stroke-width:7;stroke-linecap:round;stroke-linejoin:round}
+svg.car .trim{fill:none;stroke:var(--purple);stroke-width:2.5;opacity:.55}
+svg.car .pc .f{fill:rgba(46,230,214,.22);stroke:var(--cyan);stroke-width:3;transition:fill .4s,stroke .4s,opacity .4s}
+svg.car .pc .s{fill:none;stroke:var(--cyan);stroke-width:5;transition:stroke .4s,opacity .4s}
+svg.car .pc .dt{fill:none;stroke:var(--ink);stroke-width:2.5;opacity:.8}
+svg.car .pc{transform-box:fill-box;transform-origin:center}
+
+svg.car .pc.st-ghost .f{fill:none;stroke:var(--line);stroke-width:2.5;stroke-dasharray:8 7}
+svg.car .pc.st-ghost .s{stroke:var(--line);stroke-dasharray:8 7;stroke-width:3.5}
+svg.car .pc.st-ghost .dt{opacity:.25}
+svg.car .pc.st-meh .f{fill:rgba(255,200,87,.25);stroke:var(--gold)}
+svg.car .pc.st-meh .s{stroke:var(--gold)}
+svg.car .pc.st-fix .f{fill:rgba(255,77,106,.3);stroke:var(--red)}
+svg.car .pc.st-fix .s{stroke:var(--red)}
+svg.car .pc.st-fix{animation:shake 2.2s ease-in-out infinite}
+svg.car .pc.st-hole{opacity:.13}
+svg.car .pc.st-fixed .f{fill:rgba(46,230,214,.35);stroke:var(--cyan)}
+svg.car .pc.st-fixed{filter:drop-shadow(0 0 9px rgba(46,230,214,.9))}
+svg.car .pc.st-bolted{filter:drop-shadow(0 0 14px rgba(124,255,178,.95))}
+svg.car .pc.st-bolted .f{fill:rgba(124,255,178,.3);stroke:var(--green)}
+svg.car .pc.st-bolted .s{stroke:var(--green)}
+svg.car .pc.pop{animation:pop .55s cubic-bezier(.2,1.5,.4,1)}
+
+svg.car .lbl rect{fill:rgba(17,7,36,.88);stroke:var(--line);stroke-width:1.5}
+svg.car .lbl text{font:800 14px var(--body);fill:var(--ink)}
+svg.car .lbl.st-fix rect{fill:var(--red);stroke:var(--red)}
+svg.car .lbl.st-fix text{fill:#2A0616}
+svg.car .lbl.st-meh rect{stroke:var(--gold)}
+svg.car .lbl.st-meh text{fill:var(--gold)}
+svg.car .lbl.st-fixed rect,svg.car .lbl.st-bolted rect{stroke:var(--cyan)}
+svg.car .lbl.st-fixed text,svg.car .lbl.st-bolted text{fill:var(--cyan)}
+svg.car .lbl.st-ghost text{fill:var(--ink2)}
+svg.car .lbl.st-hole rect{stroke:var(--red);stroke-dasharray:5 5}
+svg.car .lbl.st-hole text{fill:var(--red)}
+svg.car .road{stroke:var(--violet);stroke-width:4;stroke-dasharray:26 18;opacity:.75}
+svg.car .hole{fill:none;stroke:var(--red);stroke-width:3;stroke-dasharray:6 7;opacity:.9}
+svg.car .smoke{fill:#B7A5D6;opacity:0}
+svg.car .lights{opacity:0;transition:opacity .4s}
+svg.car.on .lights{opacity:1}
+svg.car.go .whole{animation:lurch 1.5s cubic-bezier(.3,0,.2,1) 0s 1,idle 1.1s ease-in-out 1.5s infinite}
+svg.car.go .road{animation:road .3s linear infinite}
+svg.car.idle .whole{animation:idle 1.1s ease-in-out infinite}
+
+svg.sil path,svg.sil circle,svg.sil line,svg.sil rect{fill:none;stroke:var(--pink);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;
+  filter:drop-shadow(0 0 10px rgba(255,46,136,.8))}
+svg.sil .dim path,svg.sil .dim circle{stroke:var(--line);filter:none}
+
+/* escenario de atardecer */
+#scene{position:absolute;inset:0;z-index:-1;overflow:hidden;border-radius:18px}
+#scene svg{width:100%;height:100%}
+
+/* animaciones */
+@keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translate(0,0) rotate(0)}25%{transform:translate(-2px,1px) rotate(-1.2deg)}
+  50%{transform:translate(2px,-1px) rotate(1.2deg)}75%{transform:translate(-1px,-1px) rotate(-.6deg)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 18px rgba(255,46,136,.45);transform:scale(1)}50%{box-shadow:0 0 34px rgba(255,46,136,.9);transform:scale(1.03)}}
+@keyframes road{to{stroke-dashoffset:-44}}
+@keyframes lurch{0%{transform:translateX(0)}16%{transform:translateX(-24px)}58%{transform:translateX(32px)}100%{transform:translateX(0)}}
+@keyframes idle{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes puff{0%{opacity:0;transform:translate(0,0) scale(.5)}30%{opacity:.6}100%{opacity:0;transform:translate(14px,-46px) scale(1.9)}}
+svg.car .pc.st-fix .smoke{animation:puff 2.6s ease-out infinite}
+svg.car .pc.st-fix .smoke:nth-child(2){animation-delay:.9s}
+svg.car .pc.st-fix .smoke:nth-child(3){animation-delay:1.7s}
+
+/* pantallazo de ronda completada */
+#flash{position:fixed;inset:0;z-index:50;display:none;place-items:center;background:rgba(17,7,36,.93);text-align:center;padding:30px}
+#flash.on{display:grid}
+#flash .t{font-family:var(--title);font-size:min(13vw,150px);line-height:.95;
+  background:linear-gradient(92deg,var(--gold),var(--orange) 40%,var(--pink) 70%,var(--purple));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+#flash .s{font-family:var(--script);font-size:min(6vw,52px);color:var(--cyan);text-shadow:0 0 20px rgba(46,230,214,.8)}
+
+/* créditos finales */
+#credits{position:fixed;inset:0;z-index:70;display:none;overflow:hidden;
+  background:radial-gradient(900px 500px at 50% 120%,#3D1466 0%,#110724 70%)}
+#credits.on{display:block}
+#credits.quieto{overflow:auto}
+#roll{position:absolute;left:50%;top:100%;transform:translateX(-50%);width:min(820px,92vw);
+  text-align:center;padding-bottom:40vh}
+#credits.quieto #roll{position:static;top:auto;transform:none;margin:0 auto;padding:40px 0}
+#roll.rodando{animation:roll var(--dur,30s) linear forwards}
+@keyframes roll{from{transform:translate(-50%,0)}to{transform:translate(-50%,calc(-1 * var(--dist,2000px)))}}
+#roll h1{font-family:var(--title);font-size:min(9vw,74px);line-height:1;margin:0 0 6px;
+  background:linear-gradient(92deg,var(--gold),var(--orange) 40%,var(--pink) 70%,var(--purple));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+#roll .sub{font-family:var(--script);font-size:min(5vw,34px);color:var(--cyan);text-shadow:0 0 16px rgba(46,230,214,.7);margin-bottom:46px}
+#roll .bloque{margin:0 0 42px}
+#roll .rot{font-family:var(--title);font-size:17px;letter-spacing:3px;color:var(--gold);margin-bottom:10px}
+#roll .nom{font-size:26px;font-weight:800;line-height:1.35}
+#roll .nom small{display:block;font-size:16px;font-weight:400;color:var(--ink2)}
+#roll .chiste{color:var(--ink2);font-size:17px;font-style:italic;margin:6px 0;line-height:1.6}
+#roll .fin{font-family:var(--title);font-size:min(16vw,140px);line-height:.9;color:var(--pink);
+  text-shadow:0 0 36px rgba(255,46,136,.8);margin:56px 0 18px}
+#roll .mensaje{font-size:23px;line-height:1.5;max-width:30em;margin:0 auto 60px;color:var(--ink)}
+#roll .mensaje b{color:var(--gold)}
+#skip{position:fixed;top:16px;right:18px;z-index:71;background:var(--panel);border:1px solid var(--line);
+  color:var(--ink2);border-radius:10px;padding:9px 14px;font-size:14px;cursor:pointer;letter-spacing:1px}
+#skip:hover{border-color:var(--purple);color:var(--ink)}
+@media (prefers-reduced-motion:reduce){#roll{position:static;transform:none;margin:0 auto;padding:40px 0}
+  #credits.on{overflow:auto}}
+
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--panel);border:1px solid var(--purple);
+  border-radius:12px;padding:11px 18px;font-weight:700;z-index:60;display:none;box-shadow:0 0 26px rgba(122,59,255,.5)}
+#toast.on{display:block}
+
+.off{background:rgba(255,200,87,.12);border:1px solid var(--gold);border-radius:12px;padding:9px 13px;font-size:15px;color:var(--gold)}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none !important;transition:none !important}
+  svg.car .smoke{display:none}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hud">
+    <div class="brand"><div class="t">SCRUM CITY</div><div class="s">tuneando el equipo SOLTI</div></div>
+    <div id="track" role="group" aria-label="Rondas del taller"></div>
+    <div class="count" id="cPhones" hidden><b>0</b><span>en el taller</span></div>
+    <div class="count" id="cVotes" hidden><b>0</b><span>votos</span></div>
+    <div id="clock" aria-live="off">00:00</div>
+    <div class="hudbtns">
+      <button class="ico" id="bTimer" aria-label="Iniciar o pausar el cronómetro" title="Iniciar/pausar (barra espaciadora)">▶</button>
+      <button class="ico" id="bTreset" aria-label="Reiniciar el cronómetro" title="Reiniciar el cronómetro">↺</button>
+      <button class="ico" id="bSound" aria-label="Silenciar o activar los sonidos" title="Sonido">🔊</button>
+      <button class="ico" id="bMenu" aria-label="Menú del facilitador" title="Menú">⚙</button>
+    </div>
+  </div>
+
+  <div id="stage">
+    <div id="bay">
+      <div class="placa" id="placa"></div>
+      <div id="carbox"><div id="scene"></div></div>
+      <div id="bayfoot"></div>
+    </div>
+    <div id="panel" aria-live="polite"></div>
+  </div>
+
+  <div id="bench">
+    <div id="bolts" aria-label="Piezas arregladas"></div>
+    <div id="hint"></div>
+    <button class="big ghost" id="bPrev" aria-label="Ronda anterior">◀</button>
+    <button class="big" id="bNext">SIGUIENTE ▶</button>
+  </div>
+</div>
+
+<div id="flash" aria-hidden="true"><div><div class="t" id="flashT"></div><div class="s" id="flashS"></div></div></div>
+
+<div id="credits" aria-hidden="true">
+  <div id="roll"></div>
+  <button id="skip" aria-label="Cerrar los créditos">SALTAR ✕</button>
+</div>
+<div id="toast" role="status"></div>
+
+<script src="/qrcode.js" onerror="window.qrFail=1"></script>
+<script>
+"use strict";
+/* ===================================================================
+   SCRUM CITY · pantalla del facilitador
+   Funciona de dos maneras:
+     - EN VIVO: hay servidor, los celulares votan, todo llega por SSE.
+     - SOLA: no hay servidor, el facilitador mueve los votos a mano.
+   =================================================================== */
+
+const $ = (s) => document.querySelector(s);
+const esc = (t) => String(t == null ? "" : t).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+/* ---------------- contenido (respaldo para el modo sin servidor) ---------------- */
+const VEH = [
+  { id: "convertible", name: "Convertible", good: "Nos adaptamos: si llueve nos tapamos, si hay sol nos lucimos", bad: "Cambiamos tanto según el día que nadie sabe qué esperar", piezas: ["comp", "conf", "org", "com", "col", "res", "amb"], faltan: "Un convertible no trae Manual: lo que sabemos, lo sabemos de memoria." },
+  { id: "bus", name: "Bus de South Beach", good: "Nadie se queda fuera: aquí todos tienen asiento y todos opinan", bad: "Somos tantos que es fácil esconderse y nadie nota quién no empujó", piezas: ["comp", "conf", "org", "com", "col", "res", "apr", "amb"], faltan: "" },
+  { id: "scooter", name: "Scooter", good: "Cada quien arranca sin pedir permiso: sobra iniciativa", bad: "Solo cabe uno: lo que sabe cada quien no se comparte", piezas: ["comp", "conf", "org", "col", "res"], faltan: "Un scooter no trae Radio, Manual ni Asientos: se va solo y se resuelve solo." },
+  { id: "deportivo", name: "Deportivo", good: "Cuando hay que rendir, rendimos, y se nota", bad: "Vivimos en revoluciones altas: así se quema la gente", piezas: ["comp", "conf", "org", "col", "res", "amb"], faltan: "Un deportivo no trae Radio ni Manual: a esa velocidad no se avisa ni se escribe." },
+  { id: "metromover", name: "Metromover", good: "Somos previsibles: hay reglas claras y cada quien sabe qué viene", bad: "Fuera del riel no sabemos ir: proponer otra ruta cuesta", piezas: ["comp", "conf", "com", "col", "res", "apr", "amb"], faltan: "Un Metromover no trae Volante: la ruta ya venía puesta." },
+  { id: "trailer", name: "Trailer", good: "Nos hacemos cargo de lo pesado y nadie suelta la carga", bad: "No sabemos decir que no: vamos sobrecargados", piezas: ["comp", "conf", "org", "col", "res", "apr"], faltan: "Un trailer no trae Radio ni Asientos: va solo en la cabina y lo demás es carga." },
+];
+const PZ = [
+  { id: "comp", name: "Motor", mean: "Cumplimos lo que acordamos" },
+  { id: "conf", name: "Combustible", mean: "Confiamos unos en otros" },
+  { id: "org", name: "Volante", mean: "Sabemos hacia dónde vamos y quién hace qué" },
+  { id: "com", name: "Radio", mean: "Nos avisamos a tiempo lo importante" },
+  { id: "col", name: "Ruedas", mean: "Nos ayudamos para avanzar juntos" },
+  { id: "res", name: "Frenos", mean: "Resolvemos los desacuerdos sin chocar" },
+  { id: "apr", name: "Manual", mean: "Compartimos lo que sabemos" },
+  { id: "amb", name: "Asientos", mean: "Nos sentimos a gusto en el viaje" },
+];
+// Las mismas 8 piezas, leidas desde cada vehiculo. Si el equipo se reconoce
+// como Scooter, su Radio no significa lo mismo que el Radio de un Metromover.
+// Lo que no esta aqui se queda con el significado general de arriba.
+const SENTIDOS = {
+  convertible: {
+    comp: "Cumplimos aunque el plan cambie a mitad de camino",
+    conf: "Confiamos sin necesitar que todo esté escrito",
+    org: "Cada cambio de rumbo lo decidimos, no nos pasa por encima",
+    com: "Avisamos a tiempo cuando el plan cambió",
+    col: "Nos cubrimos entre todos cuando toca cambiar",
+    res: "Sabemos parar antes de cambiar otra vez",
+    apr: "Lo que aprendimos improvisando queda escrito",
+    amb: "Se viaja a gusto aunque el día venga raro",
+  },
+  bus: {
+    comp: "Cada quien cumple su parte, no solo el chofer",
+    conf: "Nos fiamos del que va al lado sin tener que comprobarlo",
+    org: "La ruta no la decide uno solo",
+    com: "Lo importante llega hasta el último asiento",
+    col: "Empujamos todos, no siempre los mismos",
+    res: "Se puede decir \"por ahí no\" sin que sea un problema",
+    apr: "Lo que sabe el de alante lo sabe el de atrás",
+    amb: "Nadie va de pie ni va aguantando el viaje",
+  },
+  scooter: {
+    comp: "Cada quien responde por lo suyo, sin que le recuerden",
+    conf: "Confiamos sin ir mirando por encima del hombro",
+    org: "Aunque vayamos sueltos, vamos al mismo sitio",
+    com: "Avisamos dónde andamos sin que nos lo pidan",
+    col: "Paramos lo nuestro para empujar lo del otro",
+    res: "Frenamos antes de salir cada quien por su lado",
+    apr: "Lo que resolvió uno no se queda en su cabeza",
+    amb: "Ir solo no es lo mismo que ir solitario",
+  },
+  deportivo: {
+    comp: "Cumplimos sin tener que ir siempre al máximo",
+    conf: "Confiamos aunque alguien tenga un mal día",
+    org: "Sabemos para qué corremos, no solo cuánto",
+    com: "Avisamos cuando ya no damos más",
+    col: "El que va en cabeza no deja atrás al resto",
+    res: "Sabemos levantar el pie antes de reventar el motor",
+    apr: "Lo que sale bien no es secreto del que lo hizo",
+    amb: "Se puede ir cómodo sin que parezca flojera",
+  },
+  metromover: {
+    comp: "Cumplimos porque lo acordamos, no porque toca",
+    conf: "Confiamos en la gente, no solo en el procedimiento",
+    org: "Alguien decide la ruta, y se le puede discutir",
+    com: "Se avisa lo que pasa, no solo lo que estaba previsto",
+    col: "Nos ayudamos aunque no esté puesto en el riel",
+    res: "Se puede decir \"esto no va\" sin descarrilar nada",
+    apr: "El manual se actualiza, no solo se cumple",
+    amb: "Se viaja cómodo, no solo puntual",
+  },
+  trailer: {
+    comp: "Cumplimos lo que acordamos, no todo lo que nos piden",
+    conf: "Confiamos lo bastante para soltar parte de la carga",
+    org: "Sabemos qué llevamos y para qué lo llevamos",
+    com: "Avisamos cuando la carga ya no cabe",
+    col: "El peso se reparte, no se queda en los mismos",
+    res: "Sabemos decir que no sin sentirnos mal",
+    apr: "Lo que cargamos por costumbre lo revisamos",
+    amb: "Aguantar no es lo mismo que ir a gusto",
+  },
+};
+// Como se llama cada pieza en cada vehiculo. El id no cambia (los votos
+// siguen contando igual), solo el nombre que ve la gente en la pantalla.
+const NOMBRES = {
+  convertible: { comp: "Motor", conf: "Gasolina", org: "Volante", com: "Antena", col: "Gomas", res: "Frenos", amb: "Capota" },
+  bus:         { comp: "Motor", conf: "Gasolina", org: "Letrero", com: "Timbre", col: "Gomas", res: "Frenos", apr: "Mapa", amb: "Asientos" },
+  scooter:     { comp: "Motorcito", conf: "Gasolina", org: "Manillar", col: "Gomas", res: "Frenos" },
+  deportivo:   { comp: "Turbo", conf: "Gasolina", org: "Tablero", col: "Neumáticos", res: "Discos", amb: "Butacas" },
+  metromover:  { comp: "Motor", conf: "Corriente", com: "Anuncios", col: "Vagones", res: "Frenos", apr: "Manual", amb: "Asientos" },
+  trailer:     { comp: "Motor", conf: "Carga", org: "Volante", col: "Ejes", res: "Freno de aire", apr: "Bitácora" },
+};
+// Lo que se ve cuando esa pieza esta rota, en cada vehiculo. Es lo que lee
+// la gente en la ronda de averias: se marca lo que de verdad esta pasando.
+const FALLAS = {
+  convertible: {
+    comp: "Acordamos algo y al otro día ya cambió",
+    conf: "Si no está escrito, no nos fiamos",
+    org: "El rumbo cambia sin que nadie lo decida",
+    com: "El plan cambió y nos enteramos tarde",
+    col: "Cuando toca cambiar, cada quien se las arregla",
+    res: "Cambiamos otra vez antes de terminar lo anterior",
+    amb: "Si el día viene malo, nos moja a todos",
+  },
+  bus: {
+    comp: "Empuja el chofer y los demás van sentados",
+    conf: "Andamos con la reserva: hay que comprobarlo todo",
+    org: "Nadie sabe bien para dónde va esto",
+    com: "Lo que se dice alante no llega atrás",
+    col: "Siempre empujan los mismos",
+    res: "Decir \"por ahí no\" se vuelve un problema",
+    apr: "Lo que aprendió uno no lo sabe nadie más",
+    amb: "Hay quien va de pie todo el viaje",
+  },
+  scooter: {
+    comp: "Hay que estarle recordando a cada quien lo suyo",
+    conf: "Nos revisamos el trabajo unos a otros",
+    org: "Cada quien va para un sitio distinto",
+    col: "Nadie para lo suyo para ayudar al otro",
+    res: "Ante un choque, cada quien arranca por su lado",
+  },
+  deportivo: {
+    comp: "Solo cumplimos si vamos a toda",
+    conf: "Un mal día de alguien se cobra caro",
+    org: "Corremos sin saber para qué",
+    col: "El que va alante deja atrás al resto",
+    res: "No levantamos el pie hasta que algo revienta",
+    amb: "Ir cómodo aquí parece flojera",
+  },
+  metromover: {
+    comp: "Cumplimos porque toca, no porque lo acordamos",
+    conf: "Confiamos en el procedimiento, no en la gente",
+    com: "Solo se avisa lo que ya estaba previsto",
+    col: "Si no está puesto en el riel, no nos ayudamos",
+    res: "Decir \"esto no va\" descarrila la reunión",
+    apr: "El manual se cumple, pero nunca se actualiza",
+    amb: "Llegamos puntuales y molidos",
+  },
+  trailer: {
+    comp: "Cumplimos todo lo que nos piden, acordado o no",
+    conf: "No soltamos la carga ni cuando nos ofrecen ayuda",
+    org: "Cargamos cosas sin saber para qué",
+    col: "El peso se queda siempre en los mismos",
+    res: "Decir que no nos hace sentir mal",
+    apr: "Cargamos por costumbre y nadie lo revisa",
+  },
+};
+
+// Si el grupo propone su propio vehiculo, se usan estas.
+const FALLA_BASE = {
+  comp: "Acordamos cosas que después no pasan",
+  conf: "No nos fiamos del todo unos de otros",
+  org: "No está claro para dónde vamos ni quién hace qué",
+  com: "Lo importante nos llega tarde",
+  col: "Cada quien va con lo suyo",
+  res: "Los desacuerdos se evitan, o terminan en choque",
+  apr: "Lo que sabe uno no lo sabe nadie más",
+  amb: "No se viaja a gusto",
+};
+const ORDER = ["col", "res", "amb", "org", "apr", "comp", "conf", "com"];
+const REGLAS = [
+  "Hablamos de situaciones, no de personas.",
+  "Lo que se dice aquí, se queda aquí.",
+  "Todas las voces cuentan.",
+  "Escuchamos para entender.",
+  "Problema + propuesta.",
+  "Presencia total: sin pantallas.",
+];
+const RONDAS = [
+  { id: "lobby",       corto: "Entrada",     min: 5,  titulo: "ENTRA AL TALLER",        sub: "Escanea y toma tu lugar" },
+  { id: "escaner",     corto: "Escáner",     min: 10, titulo: "¿QUÉ VEHÍCULO SOMOS?",   sub: "Ronda 1 · identificación" },
+  { id: "diagnostico", corto: "Averías",     min: 12, titulo: "¿QUÉ PIEZAS FALLAN?",    sub: "Ronda 3 · diagnóstico" },
+  { id: "taller",      corto: "Taller",      min: 25, titulo: "MANOS A LA OBRA",        sub: "Ronda 4 · armamos las piezas" },
+  { id: "arranque",    corto: "Arranque",    min: 0,  titulo: "¡EL EQUIPO ARRANCA!",    sub: "Cierre" },
+];
+const idxOf = (p) => Math.max(0, RONDAS.findIndex((r) => r.id === p));
+const ronda = () => RONDAS[idxOf(S.phase)];
+
+/* ---------------- sonido (sin archivos, todo sintetizado) ---------------- */
+let AC = null, muted = false;
+try { muted = localStorage.getItem("tn-mute") === "1"; } catch (e) {}
+function ac() {
+  if (!AC) { const C = window.AudioContext || window.webkitAudioContext; if (C) AC = new C(); }
+  if (AC && AC.state === "suspended") AC.resume();
+  return AC;
+}
+function tone(f1, f2, dur, type, vol) {
+  const a = ac(); if (!a) return;
+  const o = a.createOscillator(), g = a.createGain();
+  o.type = type || "sine";
+  o.frequency.setValueAtTime(f1, a.currentTime);
+  if (f2) o.frequency.exponentialRampToValueAtTime(Math.max(30, f2), a.currentTime + dur);
+  g.gain.setValueAtTime(0, a.currentTime);
+  g.gain.linearRampToValueAtTime(vol == null ? 0.18 : vol, a.currentTime + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + dur);
+  o.connect(g); g.connect(a.destination); o.start(); o.stop(a.currentTime + dur + 0.03);
+}
+function noise(dur, freq, vol) {
+  const a = ac(); if (!a) return;
+  const n = Math.floor(a.sampleRate * dur), buf = a.createBuffer(1, n, a.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+  const s = a.createBufferSource(); s.buffer = buf;
+  const f = a.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = freq || 900;
+  const g = a.createGain(); g.gain.value = vol == null ? 0.2 : vol;
+  s.connect(f); f.connect(g); g.connect(a.destination); s.start();
+}
+function sfx(kind) {
+  if (muted) return;
+  try {
+    if (kind === "voto") tone(620, 900, 0.1, "sine", 0.12);
+    else if (kind === "clank") { noise(0.22, 1600, 0.25); tone(180, 70, 0.3, "triangle", 0.12); }
+    else if (kind === "instalar") { [0, 70, 140].forEach((d, i) => setTimeout(() => tone(500 + i * 180, null, 0.07, "square", 0.1), d)); }
+    else if (kind === "tornillo") tone(1250, 1700, 0.12, "triangle", 0.13);
+    else if (kind === "ronda") { [0, 110].forEach((d, i) => setTimeout(() => tone(440 + i * 220, null, 0.16, "sawtooth", 0.1), d)); }
+    else if (kind === "aplausos") {
+      for (let i = 0; i < 90; i++) setTimeout(() => noise(0.055 + Math.random() * 0.05, 1200 + Math.random() * 2600, 0.055 + Math.random() * 0.05), Math.random() * 3400);
+    }
+    else if (kind === "fin") { [0, 150, 300, 480, 760].forEach((d, i) => setTimeout(() => tone([392, 494, 587, 784, 988][i], null, i === 4 ? 1.1 : 0.26, "triangle", 0.11), d)); }
+    else if (kind === "motor") {
+      tone(55, 130, 1.5, "sawtooth", 0.17); noise(0.5, 400, 0.12);
+      setTimeout(() => [0, 120, 240, 400].forEach((d, i) => setTimeout(() => tone(330 * (1 + i * 0.26), null, 0.22, "square", 0.1), d)), 900);
+    }
+  } catch (e) {}
+}
+function paintSound() { $("#bSound").textContent = muted ? "🔇" : "🔊"; $("#bSound").classList.toggle("on", !muted); }
+$("#bSound").onclick = () => { muted = !muted; try { localStorage.setItem("tn-mute", muted ? "1" : "0"); } catch (e) {} paintSound(); if (!muted) sfx("voto"); };
+paintSound();
+
+/* ---------------- estado ---------------- */
+let LIVE = false;          // ¿hay servidor?
+let admin = "";            // clave del facilitador
+let puedoMandar = false;   // ¿es esta la computadora que está presentando?
+let S = null;              // estado público (igual en vivo y sin servidor)
+let prev = null;           // estado anterior, para detectar cambios y animar
+let lastPiece = null;      // última pieza que cambió, para el "pop"
+let drafts = {};           // lo que el facilitador está escribiendo ahora mismo
+
+function freshLocal() {
+  return {
+    phase: "lobby", joinUrl: location.origin + "/votar", vehiclesDef: VEH.slice(), piecesDef: PZ.slice(),
+    pieceOrder: ORDER, custom: [], vehicles: {}, pieces: {}, winner: null, top: [], topFrozen: false,
+    votersVehiculo: 0, votersPiezas: 0, phones: 0, ideas: [], installed: {}, nombres: [],
+    limites: { idea: 140, ideasPorPersona: 3 }, seq: 0, solo: true,
+  };
+}
+function recalcLocal() {
+  S.winner = null; let best = -1;
+  for (const v of S.vehiclesDef) { const n = S.vehicles[v.id] || 0; if (n > best) { best = n; S.winner = n > 0 ? v.id : null; } }
+  if (!S.topFrozen) {
+    S.top = S.piecesDef.map((p) => p.id).filter((id) => (S.pieces[id] || 0) > 0)
+      .sort((a, b) => (S.pieces[b] || 0) - (S.pieces[a] || 0) || ORDER.indexOf(a) - ORDER.indexOf(b)).slice(0, 2);
+  }
+  // cada vehículo le da su propio sentido a las mismas 8 piezas
+  const sent = SENTIDOS[S.winner] || {};
+  const nom = NOMBRES[S.winner] || {};
+  const fall = FALLAS[S.winner] || {};
+  const vd = (S.vehiclesDef || VEH).find((v) => v.id === S.winner);
+  const hay = (vd && vd.piezas) || PZ.map((p) => p.id);
+  S.piecesDef = PZ.filter((p) => hay.includes(p.id)).map((p) => ({ ...p, name: nom[p.id] || p.name, mean: sent[p.id] || p.mean, falla: fall[p.id] || FALLA_BASE[p.id] || "" }));
+  S.piezasFaltan = PZ.filter((p) => !hay.includes(p.id)).map((p) => p.name);
+  S.faltanNota = (vd && vd.faltan) || "";
+  S.votersVehiculo = Object.values(S.vehicles).reduce((a, b) => a + b, 0);
+  S.votersPiezas = Math.ceil(Object.values(S.pieces).reduce((a, b) => a + b, 0) / 3);
+  saveLocal();
+}
+function saveLocal() { if (!LIVE) { try { localStorage.setItem("tn-solo", JSON.stringify(S)); } catch (e) {} } }
+
+/* ---------------- enviar acciones (en vivo o local) ---------------- */
+async function post(path, data) {
+  if (LIVE) {
+    const h = { "Content-Type": "application/json" };
+    if (path.startsWith("/api/admin/") && !puedoMandar) {
+      throw new Error("Solo la computadora que presenta puede mover el taller.");
+    }
+    if (path.startsWith("/api/admin/")) h["x-admin"] = admin;
+    const r = await fetch(path, { method: "POST", headers: h, body: JSON.stringify(data || {}) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || "No se pudo guardar.");
+    return j;
+  }
+  localAction(path.replace("/api/admin/", ""), data || {});
+  recalcLocal(); render();
+  return { ok: true };
+}
+function localAction(a, b) {
+  const nid = () => Math.random().toString(36).slice(2, 10);
+  if (a === "phase") { S.phase = b.phase; if (b.phase === "taller" && !S.topFrozen) { S.topFrozen = true; } }
+  else if (a === "custom") { S.custom.push({ id: "c" + nid(), name: b.name }); S.vehiclesDef.push({ id: S.custom[S.custom.length - 1].id, name: b.name, good: "Propuesta del equipo", bad: "" }); }
+  else if (a === "adjust") {
+    const map = b.kind === "pieza" ? S.pieces : S.vehicles;
+    map[b.id] = Math.max(0, (map[b.id] || 0) + (Number(b.d) > 0 ? 1 : -1));
+    if (!map[b.id]) delete map[b.id];
+  }
+  else if (a === "retop") { S.topFrozen = false; recalcLocal(); S.topFrozen = true; for (const k of Object.keys(S.installed)) if (!S.top.includes(k)) delete S.installed[k]; }
+  else if (a === "idea") S.ideas.push({ id: nid(), piece: b.piece, text: b.text, favs: 0 });
+  else if (a === "idea-delete") { const i = S.ideas.find((x) => x.id === b.id); S.ideas = S.ideas.filter((x) => x.id !== b.id); if (i && S.installed[i.piece] === b.id) delete S.installed[i.piece]; }
+  else if (a === "idea-fav") { const i = S.ideas.find((x) => x.id === b.id); if (i) i.favs = (i.favs || 0) + 1; }
+  else if (a === "install") {
+    if (!b.idea) delete S.installed[b.piece];
+    else { S.installed[b.piece] = b.idea; }
+  }
+  else if (a === "nombre") { S.nombres = (S.nombres || []).concat({ id: nid(), name: b.name }); }
+  else if (a === "nombre-delete") { S.nombres = (S.nombres || []).filter((n) => n.id !== b.id); }
+  else if (a === "reset") S = freshLocal();
+}
+
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove("on"), 2600); }
+const go = (p, d) => post(p, d).catch((e) => toast(e.message));
+
+/* ---------------- cronómetro por ronda ---------------- */
+let timers = {}, tick = null;
+RONDAS.forEach((r) => { timers[r.id] = r.min * 60; });
+try { const t = JSON.parse(localStorage.getItem("tn-timers") || "null"); if (t) Object.assign(timers, t); } catch (e) {}
+function drawClock() {
+  const left = timers[S ? S.phase : "lobby"] || 0;
+  const c = $("#clock");
+  c.textContent = String(Math.floor(left / 60)).padStart(2, "0") + ":" + String(left % 60).padStart(2, "0");
+  c.classList.toggle("low", left > 0 && left <= 60);
+  c.classList.toggle("zero", left === 0);
+  $("#bTimer").textContent = tick ? "❚❚" : "▶";
+  try { localStorage.setItem("tn-timers", JSON.stringify(timers)); } catch (e) {}
+}
+function toggleTimer() {
+  if (tick) { clearInterval(tick); tick = null; drawClock(); return; }
+  if (!timers[S.phase]) return;
+  tick = setInterval(() => {
+    timers[S.phase]--;
+    if (timers[S.phase] <= 0) { timers[S.phase] = 0; clearInterval(tick); tick = null; sfx("clank"); }
+    drawClock();
+  }, 1000);
+  drawClock();
+}
+$("#bTimer").onclick = toggleTimer;
+$("#bTreset").onclick = () => { if (tick) { clearInterval(tick); tick = null; } timers[S.phase] = ronda().min * 60; drawClock(); };
+
+/* ---------------- dibujo del vehículo ---------------- */
+/* Cada vehículo tiene su propio chasis y sus 8 piezas montadas donde corresponde.
+   Todos comparten el mismo lienzo (820x430) y el mismo suelo (y=374).
+     body   chasis
+     extra  detalles que no son piezas
+     parts  las 8 piezas: .f pieza rellena · .s pieza de solo trazo · .dt detalle
+     spot   centro de cada pieza (humo cuando falla, hueco cuando se desmonta)
+     lbl    dónde va la etiqueta con el nombre y los votos
+     nota   aclaración para la pantalla cuando una pieza cambia de forma  */
+const ART = {
+  convertible: {
+    body: '<path class="chassis" d="M70,300 L70,238 Q70,212 98,207 L252,200 L300,200 Q312,214 330,214 L556,214 Q574,214 586,200 L640,196 L718,204 Q752,209 752,240 L752,300 Q752,316 736,316 L86,316 Q70,316 70,300 Z"/>',
+    extra: '<path class="frame" d="M588,202 L552,150 L486,150 L480,200" style="stroke-width:5"/>'
+      + '<path class="trim" d="M396,202 L396,168 Q396,157 410,157 L428,157 Q440,157 440,169 L440,202" style="stroke-width:4;opacity:.85"/>'
+      + '<path class="trim" d="M466,202 L466,168 Q466,157 480,157 L498,157 Q510,157 510,169 L510,202" style="stroke-width:4;opacity:.85"/>',
+    lights: '<circle cx="746" cy="236" r="9" fill="#FFC857"/><path d="M755,236 L815,202 L815,270 Z" fill="url(#beam)"/><circle cx="74" cy="236" r="7" fill="#FF4D6A"/>',
+    parts: {
+      amb: '<path class="f" d="M238,202 Q238,180 266,178 L330,174 Q350,173 352,186 L354,202 Z"/><line class="dt" x1="248" y1="190" x2="350" y2="186"/><line class="dt" x1="244" y1="196" x2="352" y2="194"/>',
+      comp: '<path class="f" d="M624,203 L716,208 Q738,212 738,238 L738,264 L624,264 Z"/><circle class="dt" cx="680" cy="234" r="14"/><circle class="dt" cx="680" cy="234" r="5"/>',
+      conf: '<circle class="f" cx="150" cy="238" r="17"/><path class="dt" d="M143,246 L143,231 L155,231 L155,246 M155,235 L159,237 L159,245"/>',
+      org: '<circle class="s" cx="540" cy="186" r="16"/><line class="s" x1="540" y1="186" x2="540" y2="202" style="stroke-width:4"/><line class="s" x1="526" y1="182" x2="554" y2="182" style="stroke-width:4"/>',
+      com: '<line class="s" x1="180" y1="202" x2="206" y2="66"/><circle class="f" cx="207" cy="60" r="7"/><path class="s" d="M189,48 Q207,32 225,48" style="stroke-width:4"/><path class="s" d="M177,38 Q207,10 237,38" style="stroke-width:4"/>',
+      col: '<circle class="f" cx="215" cy="315" r="48"/><circle class="f" cx="610" cy="315" r="48"/>',
+      res: '<circle class="f" cx="215" cy="315" r="21"/><circle class="f" cx="610" cy="315" r="21"/><circle class="dt" cx="215" cy="315" r="6"/><circle class="dt" cx="610" cy="315" r="6"/>',
+      apr: '<rect class="f" x="452" y="232" width="40" height="30" rx="3"/><line class="dt" x1="472" y1="232" x2="472" y2="262"/>',
+    },
+    spot: { com: [207, 60], amb: [296, 188], org: [540, 186], comp: [680, 234], conf: [150, 238], apr: [472, 247], col: [215, 315], res: [610, 315] },
+    lbl:  { com: [304, 40], amb: [296, 128], org: [616, 118], comp: [700, 290], conf: [120, 168], apr: [472, 290], col: [215, 392], res: [612, 392] },
+    nota: "",
+  },
+  auto: {
+    body: '<path class="chassis" d="M70,300 L70,232 Q70,206 96,201 L232,195 L300,121 Q311,108 331,108 L520,108 Q541,108 553,121 L620,195 L718,204 Q752,209 752,240 L752,300 Q752,316 736,316 L86,316 Q70,316 70,300 Z"/>',
+    lights: '<circle cx="746" cy="232" r="9" fill="#FFC857"/><path d="M755,232 L815,198 L815,266 Z" fill="url(#beam)"/><circle cx="74" cy="232" r="7" fill="#FF4D6A"/>',
+    parts: {
+      amb: '<path class="f" d="M318,127 L424,127 L424,193 L252,193 Z"/><path class="f" d="M436,127 L514,127 Q525,127 533,135 L588,193 L436,193 Z"/>',
+      comp: '<path class="f" d="M622,201 L716,208 Q738,212 738,238 L738,262 L622,262 Z"/><circle class="dt" cx="680" cy="234" r="14"/><circle class="dt" cx="680" cy="234" r="5"/>',
+      conf: '<circle class="f" cx="150" cy="234" r="17"/><path class="dt" d="M143,242 L143,227 L155,227 L155,242 M155,231 L159,233 L159,241"/>',
+      org: '<circle class="s" cx="556" cy="170" r="17"/><line class="s" x1="556" y1="170" x2="556" y2="187" style="stroke-width:4"/><line class="s" x1="540" y1="166" x2="572" y2="166" style="stroke-width:4"/>',
+      com: '<line class="s" x1="372" y1="108" x2="346" y2="52"/><circle class="f" cx="344" cy="48" r="7"/><path class="s" d="M326,36 Q344,20 362,36" style="stroke-width:4"/><path class="s" d="M314,26 Q344,0 374,26" style="stroke-width:4"/>',
+      col: '<circle class="f" cx="215" cy="315" r="48"/><circle class="f" cx="610" cy="315" r="48"/>',
+      res: '<circle class="f" cx="215" cy="315" r="21"/><circle class="f" cx="610" cy="315" r="21"/><circle class="dt" cx="215" cy="315" r="6"/><circle class="dt" cx="610" cy="315" r="6"/>',
+      apr: '<rect class="f" x="288" y="158" width="40" height="30" rx="3"/><line class="dt" x1="308" y1="158" x2="308" y2="188"/>',
+    },
+    spot: { com: [344, 48], amb: [400, 160], org: [556, 170], comp: [680, 232], conf: [150, 234], apr: [308, 173], col: [215, 315], res: [610, 315] },
+    lbl: { com: [250, 34], amb: [470, 86], org: [650, 146], comp: [700, 286], conf: [122, 182], apr: [296, 226], col: [215, 392], res: [612, 392] },
+    nota: "",
+  },
+
+  bus: {
+    body: '<path class="chassis" d="M74,318 L74,156 Q74,132 102,132 L690,132 Q726,132 734,160 L752,284 L752,306 Q752,318 736,318 Z"/>',
+    extra: '<g class="trim"><rect x="104" y="156" width="96" height="58" rx="6"/><rect x="216" y="156" width="96" height="58" rx="6"/><rect x="328" y="156" width="96" height="58" rx="6"/><rect x="440" y="156" width="96" height="58" rx="6"/><rect x="552" y="156" width="96" height="58" rx="6"/><rect x="664" y="156" width="70" height="58" rx="6"/></g>',
+    lights: '<circle cx="740" cy="250" r="9" fill="#FFC857"/><path d="M749,250 L815,214 L815,286 Z" fill="url(#beam)"/><circle cx="80" cy="250" r="7" fill="#FF4D6A"/>',
+    parts: {
+      amb: '<path class="f" d="M168,272 L168,228 Q168,218 180,218 L208,218 Q220,218 220,228 L220,272 Z"/><path class="f" d="M260,272 L260,228 Q260,218 272,218 L300,218 Q312,218 312,228 L312,272 Z"/><path class="f" d="M352,272 L352,228 Q352,218 364,218 L392,218 Q404,218 404,228 L404,272 Z"/>',
+      comp: '<path class="f" d="M86,246 L180,246 L180,316 L86,316 Z"/><circle class="dt" cx="133" cy="281" r="16"/><circle class="dt" cx="133" cy="281" r="5"/>',
+      conf: '<rect class="f" x="384" y="320" width="116" height="28" rx="14"/><circle class="dt" cx="442" cy="334" r="7"/>',
+      org: '<circle class="s" cx="664" cy="228" r="22"/><line class="s" x1="664" y1="228" x2="664" y2="252" style="stroke-width:4"/><line class="s" x1="640" y1="222" x2="688" y2="222" style="stroke-width:4"/>',
+      com: '<line class="s" x1="300" y1="132" x2="286" y2="70"/><circle class="f" cx="284" cy="66" r="8"/><path class="s" d="M264,54 Q284,36 304,54" style="stroke-width:4"/><path class="s" d="M252,42 Q284,10 316,42" style="stroke-width:4"/>',
+      col: '<circle class="f" cx="196" cy="338" r="36"/><circle class="f" cx="628" cy="338" r="36"/>',
+      res: '<circle class="f" cx="196" cy="338" r="16"/><circle class="f" cx="628" cy="338" r="16"/><circle class="dt" cx="196" cy="338" r="5"/><circle class="dt" cx="628" cy="338" r="5"/>',
+      apr: '<rect class="f" x="686" y="186" width="44" height="32" rx="3"/><line class="dt" x1="708" y1="186" x2="708" y2="218"/>',
+    },
+    spot: { com: [284, 66], amb: [290, 245], org: [664, 228], comp: [133, 281], conf: [442, 334], apr: [708, 202], col: [196, 338], res: [628, 338] },
+    lbl: { com: [360, 44], amb: [290, 300], org: [580, 254], comp: [133, 208], conf: [442, 398], apr: [726, 152], col: [196, 400], res: [628, 400] },
+    nota: "",
+  },
+
+  deportivo: {
+    body: '<path class="chassis" d="M74,318 L96,266 L246,252 L336,198 L474,194 L566,250 L744,266 L752,296 Q752,318 736,318 Z"/>',
+    extra: '<path class="trim" d="M74,266 L46,228 L106,228"/>',
+    lights: '<circle cx="722" cy="276" r="9" fill="#FFC857"/><path d="M731,276 L815,244 L815,308 Z" fill="url(#beam)"/><circle cx="86" cy="290" r="7" fill="#FF4D6A"/>',
+    parts: {
+      amb: '<path class="f" d="M356,198 L436,198 L444,250 L346,250 Z"/>',
+      comp: '<path class="f" d="M196,256 L326,250 L326,316 L196,316 Z"/><circle class="dt" cx="261" cy="283" r="16"/><circle class="dt" cx="261" cy="283" r="5"/>',
+      conf: '<circle class="f" cx="300" cy="234" r="16"/><path class="dt" d="M293,242 L293,227 L305,227 L305,242 M305,231 L309,233 L309,241"/>',
+      org: '<circle class="s" cx="452" cy="224" r="17"/><line class="s" x1="452" y1="224" x2="452" y2="242" style="stroke-width:4"/><line class="s" x1="434" y1="218" x2="470" y2="218" style="stroke-width:4"/>',
+      com: '<line class="s" x1="490" y1="206" x2="510" y2="148"/><circle class="f" cx="512" cy="144" r="7"/><path class="s" d="M494,132 Q512,116 530,132" style="stroke-width:4"/><path class="s" d="M482,120 Q512,90 542,120" style="stroke-width:4"/>',
+      col: '<circle class="f" cx="206" cy="334" r="40"/><circle class="f" cx="630" cy="334" r="40"/>',
+      res: '<circle class="f" cx="206" cy="334" r="18"/><circle class="f" cx="630" cy="334" r="18"/><circle class="dt" cx="206" cy="334" r="6"/><circle class="dt" cx="630" cy="334" r="6"/>',
+      apr: '<rect class="f" x="520" y="266" width="42" height="30" rx="3"/><line class="dt" x1="541" y1="266" x2="541" y2="296"/>',
+    },
+    spot: { com: [512, 144], amb: [394, 224], org: [452, 224], comp: [261, 283], conf: [300, 234], apr: [541, 281], col: [206, 334], res: [630, 334] },
+    lbl: { com: [586, 104], amb: [300, 148], org: [432, 166], comp: [140, 236], conf: [238, 196], apr: [500, 356], col: [206, 400], res: [630, 400] },
+    nota: "",
+  },
+
+  scooter: {
+    body: '<path class="chassis" d="M200,302 Q190,262 220,252 L340,246 Q380,244 400,276 L414,300 L520,300 L536,210 Q540,186 564,182 L604,178 L608,200 L580,204 Q566,206 564,220 L550,304 Q546,314 532,314 L404,314 Q392,314 386,304 L372,282 Q356,266 332,268 L234,274 Q212,280 216,302 Z"/>',
+    extra: '<path class="chassis" d="M212,252 Q208,228 232,224 L322,216 Q346,214 348,230 L350,248 Z"/>'
+      + '<path class="chassis" d="M548,292 Q556,252 592,248 Q628,246 634,286 L620,288 Q616,262 592,264 Q566,266 562,294 Z"/>',
+    lights: '<circle cx="598" cy="196" r="11" fill="#FFC857"/><path d="M609,196 L815,158 L815,242 Z" fill="url(#beam)"/><circle cx="206" cy="268" r="6" fill="#FF4D6A"/>',
+    parts: {
+      comp: '<path class="f" d="M300,292 L374,292 Q386,292 386,304 L386,332 Q386,344 374,344 L300,344 Q288,344 288,332 L288,304 Q288,292 300,292 Z"/><line class="dt" x1="300" y1="306" x2="374" y2="306"/><line class="dt" x1="300" y1="318" x2="374" y2="318"/><line class="dt" x1="300" y1="330" x2="374" y2="330"/><path class="s" d="M288,334 L232,338" style="stroke-width:8"/>',
+      conf: '<rect class="f" x="296" y="256" width="52" height="34" rx="9"/><line class="dt" x1="306" y1="268" x2="338" y2="268"/>',
+      org: '<line class="s" x1="556" y1="166" x2="626" y2="166" style="stroke-width:8"/><line class="s" x1="590" y1="166" x2="590" y2="186" style="stroke-width:5"/><line class="s" x1="622" y1="164" x2="640" y2="140" style="stroke-width:4"/><ellipse class="f" cx="646" cy="132" rx="12" ry="8"/>',
+      col: '<circle class="f" cx="250" cy="326" r="46"/><circle class="f" cx="585" cy="326" r="46"/>',
+      res: '<circle class="f" cx="250" cy="326" r="20"/><circle class="f" cx="585" cy="326" r="20"/><circle class="dt" cx="250" cy="326" r="6"/><circle class="dt" cx="585" cy="326" r="6"/>',
+      com: '<circle class="f" cx="646" cy="96" r="10"/><path class="s" d="M630,82 Q646,66 662,82" style="stroke-width:4"/>',
+      amb: '<path class="f" d="M212,252 Q208,228 232,224 L322,216 Q346,214 348,230 L350,248 Z"/>',
+      apr: '<rect class="f" x="452" y="246" width="40" height="30" rx="3"/><line class="dt" x1="472" y1="246" x2="472" y2="276"/>',
+    },
+    spot: { com: [646, 96], amb: [280, 234], org: [596, 164], comp: [336, 318], conf: [322, 273], apr: [472, 261], col: [250, 326], res: [585, 326] },
+    lbl:  { com: [700, 62], amb: [280, 188], org: [716, 120], comp: [446, 352], conf: [322, 192], apr: [472, 206], col: [250, 400], res: [585, 400] },
+    nota: "",
+  },
+
+  metromover: {
+    body: '<path class="chassis" d="M62,316 L62,240 L198,240 L198,316 Z"/><path class="chassis" d="M214,316 L214,146 Q214,128 234,128 L380,128 L380,316 Z"/><path class="chassis" d="M380,316 L380,200 Q380,186 398,186 L672,186 Q694,186 694,208 L694,316 Z"/><path class="chassis" d="M694,316 L694,252 L732,252 L732,316 Z"/>',
+    extra: '<g class="trim"><line x1="80" y1="368" x2="80" y2="392"/><line x1="200" y1="368" x2="200" y2="392"/><line x1="320" y1="368" x2="320" y2="392"/><line x1="440" y1="368" x2="440" y2="392"/><line x1="560" y1="368" x2="560" y2="392"/><line x1="680" y1="368" x2="680" y2="392"/></g>',
+    lights: '<circle cx="716" cy="276" r="9" fill="#FFC857"/><path d="M725,276 L815,244 L815,308 Z" fill="url(#beam)"/>',
+    parts: {
+      amb: '<path class="f" d="M246,300 L246,258 Q246,248 258,248 L284,248 Q294,248 294,258 L294,300 Z"/><path class="f" d="M302,300 L302,258 Q302,248 314,248 L340,248 Q350,248 350,258 L350,300 Z"/>',
+      comp: '<rect class="f" x="410" y="212" width="252" height="86" rx="12"/><circle class="dt" cx="624" cy="255" r="26"/><circle class="dt" cx="624" cy="255" r="8"/>',
+      conf: '<path class="f" d="M74,240 Q104,204 134,222 Q164,196 186,240 Z"/>',
+      org: '<circle class="s" cx="252" cy="212" r="16"/><line class="s" x1="252" y1="212" x2="266" y2="180" style="stroke-width:5"/>',
+      com: '<rect class="f" x="470" y="112" width="48" height="76" rx="6"/><path class="s" d="M474,98 Q494,80 514,98" style="stroke-width:4"/><path class="s" d="M462,82 Q494,50 526,82" style="stroke-width:4"/>',
+      col: '<circle class="f" cx="116" cy="348" r="26"/><circle class="f" cx="176" cy="348" r="26"/><circle class="f" cx="300" cy="340" r="34"/><circle class="f" cx="470" cy="340" r="34"/><circle class="f" cx="620" cy="340" r="34"/>',
+      res: '<circle class="f" cx="300" cy="340" r="15"/><circle class="f" cx="470" cy="340" r="15"/><circle class="f" cx="620" cy="340" r="15"/><circle class="dt" cx="470" cy="340" r="5"/>',
+      apr: '<rect class="f" x="304" y="176" width="46" height="32" rx="3"/><line class="dt" x1="327" y1="176" x2="327" y2="208"/>',
+    },
+    spot: { com: [494, 150], amb: [298, 274], org: [252, 212], comp: [536, 255], conf: [130, 222], apr: [327, 192], col: [470, 340], res: [620, 340] },
+    lbl: { com: [600, 122], amb: [300, 230], org: [232, 166], comp: [664, 160], conf: [130, 190], apr: [398, 158], col: [470, 402], res: [620, 402] },
+    nota: "",
+  },
+
+  trailer: {
+    body: '<path class="chassis" d="M150,264 L560,264 L560,316 L178,316 Z"/><path class="chassis" d="M560,264 L560,172 Q560,158 576,158 L672,158 Q692,158 696,178 L706,264 Z"/>',
+    extra: '<path class="trim" d="M160,264 L160,206 M300,264 L300,206 M440,264 L440,206 M540,264 L540,206 M160,206 L540,206"/>',
+    lights: '<circle cx="700" cy="240" r="9" fill="#FFC857"/><path d="M709,240 L815,208 L815,272 Z" fill="url(#beam)"/>',
+    parts: {
+      amb: '<path class="f" d="M584,262 L584,222 Q584,214 596,214 L660,214 Q672,214 672,222 L672,262 Z"/>',
+      comp: '<path class="f" d="M706,196 L744,196 L752,258 L706,258 Z"/><line class="dt" x1="712" y1="210" x2="746" y2="210"/><line class="dt" x1="713" y1="224" x2="747" y2="224"/><line class="dt" x1="714" y1="238" x2="748" y2="238"/>',
+      conf: '<path class="f" d="M252,262 L252,218 Q292,194 332,218 L332,262 Z"/>',
+      org: '<circle class="s" cx="664" cy="192" r="18"/><line class="s" x1="664" y1="192" x2="664" y2="214" style="stroke-width:4"/>',
+      com: '<line class="s" x1="430" y1="262" x2="430" y2="172"/><path class="f" d="M412,170 Q412,138 430,138 Q448,138 448,170 Z"/><circle class="f" cx="430" cy="176" r="5"/>',
+      col: '<circle class="s" cx="258" cy="318" r="56"/><circle class="s" cx="590" cy="318" r="56"/><g class="dt"><line x1="258" y1="262" x2="258" y2="374"/><line x1="202" y1="318" x2="314" y2="318"/><line x1="590" y1="262" x2="590" y2="374"/><line x1="534" y1="318" x2="646" y2="318"/></g>',
+      res: '<path class="f" d="M194,294 L222,282 L230,300 L202,312 Z"/><line class="s" x1="196" y1="294" x2="174" y2="256" style="stroke-width:5"/>',
+      apr: '<rect class="f" x="350" y="226" width="46" height="36" rx="3"/><line class="dt" x1="373" y1="226" x2="373" y2="262"/>',
+    },
+    spot: { com: [430, 154], amb: [628, 238], org: [664, 192], comp: [728, 226], conf: [292, 236], apr: [373, 244], col: [258, 318], res: [212, 296] },
+    lbl: { com: [430, 104], amb: [500, 186], org: [628, 126], comp: [752, 324], conf: [292, 166], apr: [373, 348], col: [258, 402], res: [104, 330] },
+    nota: "",
+  },
+};
+// ART.auto queda como chasis genérico para un vehículo que proponga el grupo.
+
+// El vehículo ganador manda. Si el grupo propuso uno suyo, o si por lo que sea
+// el dibujo está incompleto, se usa el chasis genérico antes que romper la pantalla.
+function art() {
+  const a = ART[S.winner];
+  return a && a.spot && a.parts && a.lbl ? a : ART.auto;
+}
+
+function pieceState(id) {
+  const ph = S.phase, n = S.pieces[id] || 0, top = S.top || [];
+  if (ph === "lobby" || ph === "escaner") return "ghost";
+  if (ph === "diagnostico") return top.includes(id) ? "fix" : n > 0 ? "meh" : "ok";
+  if (!top.includes(id)) return n > 0 ? "meh" : "ok";
+  if (!S.installed[id]) return "hole";
+  return ph === "arranque" ? "bolted" : "fixed";   // al final, la pieza queda apretada
+}
+function carSVG() {
+  const ph = S.phase, A = art();
+  // este vehículo puede no traer las 8: lo que no tiene, no se dibuja
+  const hay = ORDER.filter((id) => (S.piecesDef || PZ).some((p) => p.id === id) && A.spot[id] && A.lbl[id]);
+  const pzs = hay.map((id) => {
+    const st = pieceState(id);
+    const p = (S.piecesDef || PZ).find((x) => x.id === id) || { name: id, mean: "" };
+    const [sx, sy] = A.spot[id];
+    const smoke = st === "fix" ? [0, 1, 2].map((i) => `<circle class="smoke" cx="${sx + i * 5 - 5}" cy="${sy - 14}" r="${7 + i * 2}"/>`).join("") : "";
+    const hole = st === "hole" ? `<circle class="hole" cx="${sx}" cy="${sy}" r="26"/>` : "";
+    return `<g class="pc st-${st} ${lastPiece === id ? "pop" : ""}" data-p="${id}"><title>${esc(p.name)}: ${esc(p.mean)}</title>${A.parts[id]}${smoke}</g>${hole}`;
+  }).join("");
+  const lbls = hay.map((id) => {
+    const st = pieceState(id), [x, y] = A.lbl[id], n = S.pieces[id] || 0;
+    const p = (S.piecesDef || PZ).find((x2) => x2.id === id) || { name: id };
+    const txt = p.name + (ph !== "lobby" && ph !== "escaner" && n ? " · " + n : "");
+    const w = txt.length * 8.4 + 24;
+    return `<g class="lbl st-${st}"><rect x="${x - w / 2}" y="${y - 15}" width="${w}" height="30" rx="15"/><text x="${x}" y="${y + 5}" text-anchor="middle">${esc(txt)}</text></g>`;
+  }).join("");
+  const cls = ph === "arranque" ? "go on " : "";
+  const nombre = S.winner ? vName(S.winner) : "equipo";
+  return `<svg class="car ${cls}" viewBox="0 0 820 430" role="img" aria-label="${esc(nombre)} del equipo con sus ${hay.length} piezas">
+    <line class="road" x1="10" y1="374" x2="810" y2="374"/>
+    <g class="whole">
+      ${A.body}
+      ${A.extra || ""}
+      <g class="lights">${A.lights}</g>
+      ${pzs}
+    </g>${lbls}
+    <defs><linearGradient id="beam" x1="0" x2="1"><stop offset="0" stop-color="#FFC857" stop-opacity=".75"/><stop offset="1" stop-color="#FFC857" stop-opacity="0"/></linearGradient></defs>
+  </svg>`;
+}
+
+/* siluetas de la ronda 1 */
+const SIL = {
+  convertible: '<path d="M22,112 L22,86 Q22,74 38,72 L92,68 L118,68 Q124,78 134,78 L204,78 Q214,78 220,68 L248,66 L276,72 Q292,75 292,90 L292,112 Z"/><path d="M222,68 L204,42 L166,42 L164,68"/><path d="M92,68 Q90,54 106,52 L140,50 Q150,49 150,60 L150,68"/><circle cx="74" cy="118" r="18"/><circle cx="230" cy="118" r="18"/>',
+  bus: '<path d="M34,54 L256,54 Q272,54 272,70 L272,120 L34,120 Z"/><line x1="58" y1="70" x2="58" y2="96"/><line x1="100" y1="70" x2="100" y2="96"/><line x1="142" y1="70" x2="142" y2="96"/><line x1="184" y1="70" x2="184" y2="96"/><line x1="226" y1="70" x2="226" y2="96"/><circle cx="82" cy="130" r="16"/><circle cx="218" cy="130" r="16"/>',
+  scooter: '<path d="M56,118 Q50,92 72,88 L126,84 Q144,82 154,102 L162,116 L198,116 L206,66 Q208,54 222,52 L244,50"/><path d="M70,88 Q66,74 80,72 L120,70 Q134,69 134,82"/><path d="M230,42 L262,42"/><path d="M246,50 L246,42"/><circle cx="72" cy="126" r="22"/><circle cx="218" cy="126" r="22"/>',
+  deportivo: '<path d="M26,112 L64,88 L122,84 L152,62 L204,62 L232,86 L276,94 L278,112 Z"/><path d="M26,96 L10,80 L34,80"/><path d="M262,62 L286,62 L286,74"/><circle cx="82" cy="120" r="18"/><circle cx="226" cy="120" r="18"/>',
+  metromover: '<path d="M30,58 L150,58 L150,120 L30,120 Z"/><path d="M150,80 L252,80 Q268,80 268,96 L268,120 L150,120 Z"/><path d="M58,58 L58,34 L84,34 L84,58"/><circle cx="60" cy="132" r="12"/><circle cx="112" cy="132" r="12"/><circle cx="186" cy="132" r="12"/><circle cx="240" cy="132" r="12"/><line x1="18" y1="146" x2="282" y2="146"/>',
+  trailer: '<path d="M20,112 L20,62 L176,62 L176,112 Z"/><path d="M186,112 L186,46 Q186,36 198,36 L246,36 Q258,36 262,48 L274,80 L278,112 Z"/><circle cx="56" cy="124" r="14"/><circle cx="104" cy="124" r="14"/><circle cx="232" cy="124" r="14"/>',
+};
+function silSVG(id) {
+  const art = SIL[id] || '<path d="M70,62 L230,62 L230,122 L70,122 Z"/><text x="150" y="108" text-anchor="middle" style="font:800 44px Anton;fill:#FF2E88;stroke:none">?</text>';
+  return `<svg class="sil" viewBox="0 0 300 170" role="img" aria-hidden="true">${art}</svg>`;
+}
+
+/* escenario de fondo: atardecer, palmeras y edificios */
+function scene() {
+  return `<svg viewBox="0 0 800 450" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#1A0B33"/><stop offset=".45" stop-color="#3D1466"/>
+        <stop offset=".78" stop-color="#A3207A"/><stop offset="1" stop-color="#F2643A"/>
+      </linearGradient>
+      <clipPath id="sunc"><circle cx="400" cy="300" r="150"/></clipPath>
+    </defs>
+    <rect width="800" height="450" fill="url(#sky)" opacity=".42"/>
+    <g clip-path="url(#sunc)">
+      <circle cx="400" cy="300" r="150" fill="#FFC857" opacity=".5"/>
+      ${[0, 1, 2, 3, 4, 5, 6, 7].map((i) => `<rect x="250" y="${300 + i * 17}" width="300" height="${5 + i}" fill="#110724" opacity=".75"/>`).join("")}
+    </g>
+    <g fill="#1A0B33" opacity=".92">
+      <rect x="20" y="206" width="52" height="244"/><rect x="82" y="248" width="38" height="202"/>
+      <rect x="690" y="226" width="56" height="224"/><rect x="756" y="262" width="34" height="188"/>
+      <rect x="132" y="282" width="28" height="168"/><rect x="646" y="292" width="26" height="158"/>
+    </g>
+    <g stroke="#FFC857" stroke-width="2" opacity=".45" fill="none">
+      <path d="M176,450 L176,318 M176,318 Q150,300 126,306 M176,318 Q202,298 228,306 M176,318 Q156,292 140,274 M176,318 Q196,292 212,272"/>
+      <path d="M626,450 L626,330 M626,330 Q602,312 580,318 M626,330 Q650,310 674,318 M626,330 Q608,304 594,288 M626,330 Q644,304 658,286"/>
+    </g>
+  </svg>`;
+}
+
+/* ---------------- piezas arregladas (banca) ---------------- */
+function boltCount() { return installCount(); }
+function installCount() { return (S.top || []).filter((id) => S.installed[id]).length; }
+
+/* ---------------- QR ---------------- */
+function qrHTML(size) {
+  if (window.qrcode && !window.qrFail) {
+    try {
+      const q = qrcode(0, "M"); q.addData(S.joinUrl); q.make();
+      return `<div class="qr" style="width:${size}px;height:${size}px">${q.createSvgTag({ cellSize: 4, margin: 0, scalable: true })}</div>`;
+    } catch (e) {}
+  }
+  return `<div class="qr" style="width:${size}px;height:${size}px;color:#1A0B33;font-size:14px;text-align:center;padding:12px">Abre este enlace en el celular:<br><b>${esc(S.joinUrl)}</b></div>`;
+}
+
+/* ===================================================================
+   PANELES POR RONDA
+   =================================================================== */
+
+function pName(id) { return ((S.piecesDef || PZ).find((p) => p.id === id) || { name: id }).name; }
+function pMean(id) { return ((S.piecesDef || PZ).find((p) => p.id === id) || { mean: "" }).mean; }
+// en la ronda de averías se lee la pieza al revés: lo que pasa cuando está rota
+function pFalla(id) { const p = (S.piecesDef || PZ).find((x) => x.id === id) || {}; return p.falla || FALLA_BASE[id] || p.mean || ""; }
+function vName(id) { return ((S.vehiclesDef || VEH).find((v) => v.id === id) || { name: "—" }).name; }
+function vDef(id) { return (S.vehiclesDef || VEH).find((v) => v.id === id) || null; }
+
+function listaNombres() {
+  const ns = S.nombres || [];
+  return `<div class="card">
+    <h3>EN LA SALA · ${ns.length}</h3>
+    <p>Los nombres salen en los créditos del final. Van aparte de los votos: aquí nadie puede ver quién votó qué.</p>
+    <div class="notes" style="gap:7px">${ns.length
+      ? ns.map((n) => `<span class="quien">${esc(n.name)}<button data-quita="${n.id}" aria-label="Quitar a ${esc(n.name)} de los créditos">✕</button></span>`).join("")
+      : `<span class="empty">Todavía nadie se ha anotado.</span>`}</div>
+    <div style="display:flex;gap:8px;margin-top:11px">
+      <input id="quien" placeholder="Anotar a alguien sin celular…" maxlength="24"
+        style="flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;color:var(--ink);font:inherit">
+      <button class="big ghost" id="addquien" style="padding:9px 14px;font-size:15px">AÑADIR</button>
+    </div>
+  </div>`;
+}
+
+function panelLobby() {
+  return `
+  <div class="card">
+    <span class="tag">Entrada al taller</span>
+    <h2>ENTRA AL TALLER</h2>
+    ${LIVE ? `<p>Escanea el código con la cámara del celular. No pide tu nombre: nadie sabrá qué votaste.</p>
+      <div class="qrwrap grande">${qrHTML(304)}<div><div class="u">${esc(S.joinUrl)}</div>
+      <p style="margin-top:9px">Celulares conectados: <b style="color:var(--cyan);font-size:22px">${S.phones}</b></p></div></div>
+      ${listaNombres()}`
+      : `<div class="off">Estás sin servidor: no hay celulares ni QR. Los votos se suman a mano con los botones <b>+</b> y <b>−</b> de cada ronda, y todo se guarda en este navegador.</div>
+         <p style="margin-top:9px">Para el taller en vivo, arranca <b>iniciar-taller.bat</b> (o <b>node server.js</b>) y abre el enlace que sale en la consola.</p>`}
+  </div>
+  ${LIVE ? "" : listaNombres()}
+  <div class="card">
+    <h3>REGLAS DEL TALLER</h3>
+    <div class="rules">${REGLAS.map((r, i) => `<div class="rule"><i>${i + 1}</i>${esc(r)}</div>`).join("")}</div>
+  </div>
+  <div class="card">
+    <h3>¿POR QUÉ UN VEHÍCULO?</h3>
+    <div class="rules">
+      <div class="rule">Todos lo entendemos.</div><div class="rule">Hablamos sin señalar.</div>
+      <div class="rule">Vemos el todo.</div><div class="rule">Se recuerda.</div>
+    </div>
+  </div>`;
+}
+
+function panelEscaner() {
+  const tot = Object.values(S.vehicles).reduce((a, b) => a + b, 0);
+  const max = Math.max(1, ...Object.values(S.vehicles));
+  const list = (S.vehiclesDef || VEH).map((v) => {
+    const n = S.vehicles[v.id] || 0, lead = n > 0 && n === max;
+    return `<div class="row">
+      <div class="bar ${lead ? "lead" : ""}"><div class="fill" style="width:${Math.round((n / max) * 100)}%"></div>
+        <div class="lbl"><b>${esc(v.name)}</b><small>${v.good ? "✓ " + esc(v.good) : ""}${v.bad ? "   ✗ " + esc(v.bad) : ""}</small></div>
+        <div class="n">${n}</div></div>
+      <div class="pm"><button data-adj="vehiculo:${v.id}:1" aria-label="Sumar un voto a ${esc(v.name)}">+</button><button data-adj="vehiculo:${v.id}:-1" aria-label="Quitar un voto a ${esc(v.name)}">−</button></div>
+    </div>`;
+  }).join("");
+  return `
+  <div class="card">
+    <span class="tag">Ronda 1 · escáner</span>
+    <h2>¿QUÉ VEHÍCULO SOMOS HOY?</h2>
+    <p>No el que nos gustaría ser: el que somos esta semana. ${LIVE ? "Cada persona elige uno desde su celular." : "Cuenta las manos y suma los votos con + y −."}</p>
+    <div class="bars">${list}</div>
+    <div style="display:flex;gap:9px;align-items:center;margin-top:11px;flex-wrap:wrap">
+      <input id="newveh" placeholder="Vehículo que propuso el grupo…" maxlength="30"
+        style="flex:1;min-width:180px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--ink);font:inherit">
+      <button class="big ghost" id="addveh" style="padding:10px 16px;font-size:16px">AGREGAR</button>
+      <span style="color:var(--ink2);font-size:15px;margin-left:auto">${tot} ${tot === 1 ? "voto" : "votos"}</span>
+    </div>
+  </div>
+  ${S.winner ? `<div class="card"><span class="tag c">Va ganando</span><h3>${esc(vName(S.winner)).toUpperCase()}</h3>
+    <p>${esc((vDef(S.winner) || {}).good || "")}</p><p style="color:var(--red)">${esc((vDef(S.winner) || {}).bad || "")}</p></div>` : ""}`;
+}
+
+function panelDiagnostico() {
+  const max = Math.max(1, ...Object.values(S.pieces));
+  // solo las piezas que este vehículo trae
+  const list = ORDER.filter((id) => (S.piecesDef || PZ).some((p) => p.id === id)).map((id) => {
+    const n = S.pieces[id] || 0, fix = (S.top || []).includes(id);
+    return `<div class="row">
+      <div class="bar ${fix ? "lead" : ""}"><div class="fill" style="width:${Math.round((n / max) * 100)}%"></div>
+        <div class="lbl"><b>${esc(pName(id))}${fix ? " 🔧" : ""}</b><small>${esc(pFalla(id))}</small></div>
+        <div class="n">${n}</div></div>
+      <div class="pm"><button data-adj="pieza:${id}:1" aria-label="Sumar un voto a ${esc(pName(id))}">+</button><button data-adj="pieza:${id}:-1" aria-label="Quitar un voto a ${esc(pName(id))}">−</button></div>
+    </div>`;
+  }).join("");
+  return `
+  <div class="card">
+    <span class="tag r">Ronda 2 · diagnóstico</span>
+    <h2>¿QUÉ PIEZAS FALLAN?</h2>
+    <p><b style="color:var(--gold)">Aquí no se vota lo que queremos, se marca lo que nos está pasando.</b> ${LIVE ? "Cada persona marca hasta 2 frases que reconozca en nosotros" : "Marca hasta 2 frases por persona: súmalas con + y −"}. Las 2 más votadas se desmontan y hay que armarlas en el taller.</p>
+    <div class="bars">${list}</div>
+    ${(S.piezasFaltan || []).length ? `<p class="sinpieza">${esc(S.faltanNota || ("Este vehículo no trae " + S.piezasFaltan.join(", ") + "."))}</p>` : ""}
+    ${LIVE ? `<p style="margin-top:10px">Han diagnosticado: <b style="color:var(--cyan)">${S.votersPiezas}</b> de ${S.phones} celulares conectados.</p>` : ""}
+  </div>
+  <div class="card"><span class="tag r">Averiadas ahora mismo</span>
+    <h3>${(S.top || []).length ? (S.top || []).map((id) => esc(pName(id)).toUpperCase()).join("  ·  ") : "TODAVÍA NADIE VOTA"}</h3>
+    <p>Al pasar a la siguiente ronda estas piezas quedan fijas.</p></div>`;
+}
+
+function panelTaller() {
+  const top = S.top || [];
+  if (!top.length) return `<div class="card"><h2>SIN AVERÍAS</h2><p>Nadie votó piezas en la ronda anterior. Vuelve atrás y abre el diagnóstico, o suma votos a mano.</p></div>`;
+  const bays = top.map((pid) => {
+    const ideas = (S.ideas || []).filter((i) => i.piece === pid).sort((a, b) => (b.favs || 0) - (a.favs || 0));
+    const inst = S.installed[pid];
+    const items = ideas.length ? ideas.map((i, n) => `
+      <div class="idea ${inst === i.id ? "win" : ""} ${!inst && n === 0 && (i.favs || 0) > 0 ? "lead" : ""}">
+        <div class="favs">${inst === i.id ? "✓" : "★" + (i.favs || 0)}</div>
+        <div>${esc(i.text)}${!inst && n === 0 && (i.favs || 0) > 0 ? `<span class="mas">la más apoyada</span>` : ""}</div>
+        <div class="acts">
+          ${inst === i.id
+            ? `<button data-install="${pid}:" aria-label="Quitar la pieza instalada">Quitar</button>`
+            : `<button class="go" data-install="${pid}:${i.id}" aria-label="Instalar esta idea en ${esc(pName(pid))}">Instalar</button>`}
+          <button data-del="${i.id}" aria-label="Borrar esta idea">✕</button>
+        </div>
+      </div>`).join("") : `<div class="empty">${LIVE ? "Esperando ideas desde los celulares…" : "Escribe abajo las ideas que diga la gente."}</div>`;
+    return `<div class="bay ${inst ? "ok" : ""}">
+      <header><span class="nm">${esc(pName(pid)).toUpperCase()}</span><span class="mn">${esc(pMean(pid))}</span>
+        <span style="margin-left:auto;color:${inst ? "var(--cyan)" : "var(--red)"};font-weight:800">${inst ? "INSTALADA" : "DESMONTADA"}</span></header>
+      ${items}
+      <div style="display:flex;gap:8px">
+        <input id="idea-${pid}" placeholder="Idea dictada en voz alta…" maxlength="140"
+          style="flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;color:var(--ink);font:inherit;font-size:16px">
+        <button class="big ghost" data-addidea="${pid}" style="padding:9px 14px;font-size:15px">AÑADIR</button>
+      </div>
+    </div>`;
+  }).join("");
+  const nIdeas = (S.ideas || []).length;
+  return `
+  <div class="card">
+    <span class="tag">Ronda 3 · taller</span>
+    <h2>MANOS A LA OBRA</h2>
+    <p>${LIVE ? "Cada quien manda sus ideas desde su celular, para las piezas que quiera, y apoya con ★ una idea en cada pieza."
+      : "Anota aquí las ideas que vaya diciendo la gente."}
+       La más apoyada se instala: presiona <b>Instalar</b> y la pieza vuelve al vehículo.</p>
+    <p style="color:var(--cyan);font-weight:700">Instaladas ${installCount()} de ${top.length} · ${nIdeas} ${nIdeas === 1 ? "idea" : "ideas"} en total</p>
+  </div>${bays}`;
+}
+
+function panelArranque() {
+  const top = S.top || [];
+  const filas = top.map((pid) => {
+    const idea = (S.ideas || []).find((i) => i.id === S.installed[pid]);
+    return `<div class="line"><b>${esc(pName(pid)).toUpperCase()}</b><div>${esc(idea ? idea.text : "sin idea instalada")}<br>
+      <span style="color:var(--ink2);font-size:15px">${esc(pMean(pid))}</span></div></div>`;
+  }).join("");
+  return `
+  <div class="card">
+    <span class="tag c">Cierre</span>
+    <h2>${S.winner ? "ARREGLAMOS NUESTRO " + esc(vName(S.winner)).toUpperCase() : "EL EQUIPO ARRANCA"}</h2>
+    <p>Estas son las piezas que el equipo decidió arreglar, con la idea que más apoyo tuvo. Cópialo y mándalo.</p>
+    <div class="sum">${filas || `<div class="empty">Ninguna pieza quedó instalada.</div>`}</div>
+    <div style="display:flex;gap:9px;margin-top:12px">
+      <button class="big ghost" id="aplauso" style="flex:none">👏 APLAUSOS</button>
+      <button class="big pulse" id="rodar" style="flex:1">🎬 RODAR LOS CRÉDITOS</button>
+    </div>
+  </div>
+  <div class="card"><h3>REVISIONES</h3>
+    <div class="road3">
+      <div><b>30</b><span>días: revisar los arreglos</span></div>
+      <div><b>60</b><span>días: ajustar lo que falte</span></div>
+      <div><b>90</b><span>días: votar otra vez qué somos</span></div>
+    </div></div>
+  <div class="card"><h3>GUARDAR</h3>
+    <div style="display:flex;gap:9px;flex-wrap:wrap">
+      <button class="big ghost" id="copyTxt" style="font-size:16px;padding:11px 16px">COPIAR RESUMEN</button>
+      <button class="big ghost" id="copyJson" style="font-size:16px;padding:11px 16px">COPIAR DATOS</button>
+      <button class="big ghost" id="loadJson" style="font-size:16px;padding:11px 16px">CARGAR DATOS</button>
+    </div></div>`;
+}
+
+const PANELS = { lobby: panelLobby, escaner: panelEscaner, diagnostico: panelDiagnostico, taller: panelTaller, arranque: panelArranque };
+
+/* ---------------- resumen en texto ---------------- */
+function resumenTexto() {
+  const L = [];
+  L.push("SCRUM CITY · TUNEANDO EL EQUIPO SOLTI");
+  L.push("");
+  L.push("HOY SOMOS: " + (S.winner ? vName(S.winner) : "(sin votos)"));
+  const vs = Object.entries(S.vehicles).sort((a, b) => b[1] - a[1]);
+  if (vs.length) L.push("  votos: " + vs.map(([k, n]) => vName(k) + " " + n).join(", "));
+  L.push("");
+  L.push("PIEZAS QUE HAY QUE ARREGLAR:");
+  for (const pid of (S.top || [])) {
+    const idea = (S.ideas || []).find((i) => i.id === S.installed[pid]);
+    L.push("- " + pName(pid) + " (" + (S.pieces[pid] || 0) + " votos) · " + pMean(pid));
+    L.push("    idea que ganó: " + (idea ? idea.text : "—"));
+    const otras = (S.ideas || []).filter((i) => i.piece === pid && S.installed[pid] !== i.id);
+    if (otras.length) L.push("    otras ideas:   " + otras.map((i) => i.text).join(" | "));
+  }
+  if ((S.nombres || []).length) { L.push(""); L.push("EN LA SALA: " + S.nombres.map((n) => n.name).join(", ")); }
+  L.push("");
+  L.push("REVISIONES: 30 días revisar · 60 días ajustar · 90 días volver a votar");
+  L.push("");
+  L.push("Esto es un diagnóstico, no un plan. Lo que lo convierte en plan es lo que pase el lunes.");
+  return L.join("\n");
+}
+async function copy(txt, msg) {
+  try { await navigator.clipboard.writeText(txt); toast(msg); }
+  catch (e) {
+    const ta = document.createElement("textarea"); ta.value = txt; document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); toast(msg); } catch (e2) { toast("No se pudo copiar."); }
+    ta.remove();
+  }
+}
+
+/* ===================================================================
+   RENDER
+   =================================================================== */
+function render() {
+  if (!S) return;
+  const r = ronda();
+
+  // carretera de rondas
+  $("#track").innerHTML = RONDAS.map((x, i) => {
+    const cls = x.id === S.phase ? "now" : i < idxOf(S.phase) ? "done" : "";
+    return `<div class="stop ${cls}"><i></i><span>${esc(x.corto)}</span></div>`;
+  }).join("");
+
+  // contadores
+  const cp = $("#cPhones"), cv = $("#cVotes");
+  cp.hidden = !LIVE; cp.querySelector("b").textContent = S.phones || 0;
+  const votos = S.phase === "diagnostico" ? Object.values(S.pieces).reduce((a, b) => a + b, 0) : Object.values(S.vehicles).reduce((a, b) => a + b, 0);
+  cv.hidden = !(S.phase === "escaner" || S.phase === "diagnostico"); cv.querySelector("b").textContent = votos;
+
+  // vehículo
+  const box = $("#carbox");
+  if (S.phase === "escaner") {
+    box.innerHTML = `<div id="scene">${scene()}</div>` + (S.winner ? silSVG(S.winner) : silSVG("none"));
+  } else {
+    box.innerHTML = `<div id="scene">${scene()}</div>` + carSVG();
+  }
+
+  // placa
+  const pl = $("#placa");
+  if (S.phase === "lobby") pl.innerHTML = `<span class="q">VEHÍCULO SIN IDENTIFICAR</span>`;
+  else if (S.phase === "escaner") pl.innerHTML = S.winner ? `<span class="q">ESCANEANDO…</span><span class="box">${esc(vName(S.winner))}</span>` : `<span class="q">ESCANEANDO…</span>`;
+  else pl.innerHTML = (S.winner ? `<span class="mini">${silSVG(S.winner)}</span>` : "") +
+    `<span class="q">HOY SOMOS UN</span><span class="box">${esc(S.winner ? vName(S.winner) : "¿?")}</span>`;
+
+  // pie del vehículo
+  const foot = $("#bayfoot");
+  if (S.phase === "diagnostico") foot.textContent = "Rojo: hay que arreglarla · Dorado: algunos votos · Cian: funciona bien";
+  else if (S.phase === "taller") foot.textContent = "Los huecos rojos son las piezas desmontadas. Se llenan al instalar una idea.";
+  else if (S.phase === "arranque") foot.textContent = "Las piezas, de vuelta en su sitio.";
+  else if (S.phase === "escaner") foot.textContent = "La silueta cambia según va ganando un vehículo.";
+  else foot.textContent = "";
+  // Si en este vehículo alguna pieza toma otra forma, se aclara aquí.
+  if (S.phase !== "lobby" && S.phase !== "escaner" && art().nota) {
+    foot.textContent = (foot.textContent ? foot.textContent + "  ·  " : "") + art().nota;
+  }
+
+  // panel de la ronda
+  const panel = $("#panel");
+  const act = document.activeElement, actId = act && act.id, ss = act && act.selectionStart, se = act && act.selectionEnd;
+  panel.innerHTML = (PANELS[S.phase] || panelLobby)();
+  if (actId) { const n = document.getElementById(actId); if (n) { n.focus(); try { n.setSelectionRange(ss, se); } catch (e) {} } }
+
+  // banca
+  const top = S.top || [];
+  $("#bolts").innerHTML = top.length
+    ? top.map((pid) => `<div class="bolt ${S.installed[pid] ? "on" : ""}" title="${esc(pName(pid))}">${S.installed[pid] ? "✓" : "○"}</div>`).join("")
+    : "";
+  $("#hint").innerHTML = hintFor(r);
+  const last = idxOf(S.phase) === RONDAS.length - 1;
+  $("#bNext").textContent = last ? "↺ EMPEZAR DE NUEVO" : NEXTLBL[S.phase] || "SIGUIENTE ▶";
+  $("#bNext").classList.toggle("pulse", S.phase === "taller" && top.length > 0 && installCount() === top.length);
+  $("#bPrev").disabled = idxOf(S.phase) === 0;
+  const puede = !LIVE || (!!admin && puedoMandar);
+  $("#bNext").disabled = !puede; $("#bPrev").disabled = $("#bPrev").disabled || !puede;
+  document.body.classList.toggle("lectura", LIVE && !puede);
+
+  if (S.phase !== "arranque") creditosOn = false;        // listo para el próximo cierre
+  drawClock();
+}
+const NEXTLBL = {
+  lobby: "ABRIR EL ESCÁNER ▶", escaner: "CERRAR Y DIAGNOSTICAR ▶", diagnostico: "DESMONTAR LAS PIEZAS ▶",
+  taller: "¡ARRANCAR! ▶",
+};
+function hintFor(r) {
+  if (LIVE && !puedoMandar) return `Modo lectura. El taller solo se mueve desde la computadora que lo está presentando.`;
+  if (LIVE && !admin) return `Pantalla en modo lectura. Abre el enlace con <b>?admin=…</b> que salió en la consola para poder mover las rondas.`;
+  const top = S.top || [];
+  if (S.phase === "lobby") return `Espera a que todos escaneen el QR. Luego abre el escáner.`;
+  if (S.phase === "escaner") return `Cada celular elige un vehículo. Puedes agregar los que proponga el grupo.`;
+  if (S.phase === "diagnostico") return `Cada quien marca hasta 2 frases que reconozca en nosotros. Las 2 más votadas se desmontan.`;
+  if (S.phase === "taller") return `Instaladas ${installCount()} de ${top.length}. Instala la idea más apoyada de cada pieza.`;
+  return `Copia el resumen y mándalo al equipo. Revisión a los 30 días.`;
+}
+
+/* ---------------- créditos finales ---------------- */
+const ROL = {
+  comp: "DIRECCIÓN DE MOTOR", conf: "JEFE DE COMBUSTIBLE", org: "DIRECCIÓN GENERAL",
+  com: "SONIDO Y COMUNICACIONES", col: "COORDINACIÓN DE MOVIMIENTO", res: "ESPECIALISTA EN FRENADAS",
+  apr: "GUION Y DOCUMENTACIÓN", amb: "AMBIENTACIÓN Y VESTUARIO",
+};
+const MENSAJE_FINAL = `Hoy no arreglamos el vehículo.<br><br>
+  Hoy hicimos algo más difícil: <b>ponernos de acuerdo en qué está sonando raro</b>.<br><br>
+  Lo demás se arregla el lunes, cuando alguien toque la primera pieza.<br><br>
+  Nos vemos en 30 días, a ver si prende.`;
+
+function rodarCreditos() {
+  const ord = S.top || [], roll = $("#roll"), cr = $("#credits");
+  const reparto = ord.map((pid) => {
+    const idea = (S.ideas || []).find((i) => i.id === S.installed[pid]);
+    return `<div class="nom">${esc(ROL[pid] || pName(pid))}<small>${esc(idea ? idea.text : "pieza aún desmontada")}</small></div>`;
+  }).join("");
+  const primeraIdea = ord.length ? (S.ideas || []).find((i) => i.id === S.installed[ord[0]]) : null;
+  const nIdeas = (S.ideas || []).length;
+  const votos = Object.values(S.vehicles || {}).reduce((a, b) => a + b, 0);
+
+  roll.innerHTML = `
+    <h1>SCRUM CITY</h1>
+    <div class="sub">tuneando el equipo SOLTI</div>
+    <div class="bloque"><div class="rot">REPARTO</div>
+      ${(S.nombres || []).length
+        ? `<div class="nom" style="font-size:22px;line-height:1.9">${(S.nombres || []).map((n) => esc(n.name)).join(" · ")}</div>
+           <small style="color:var(--ink2);font-size:16px">y sus ${votos} votos, que siguen siendo secretos</small>`
+        : `<div class="nom">${votos} mecánicos<small>que votaron sin decir su nombre</small></div>`}</div>
+    <div class="bloque"><div class="rot">EQUIPO TÉCNICO</div>${reparto || `<div class="nom">—</div>`}</div>
+    <div class="bloque"><div class="rot">EFECTOS ESPECIALES</div>
+      <div class="nom">${nIdeas} ${nIdeas === 1 ? "idea" : "ideas"}<small>salidas de los celulares de esta sala</small></div></div>
+    <div class="bloque"><div class="rot">PRIMERA ESCENA DE LA SECUELA</div>
+      <div class="nom">${esc(primeraIdea ? primeraIdea.text : "lo que hagamos el lunes")}<small>en 30 días sabremos si pasó</small></div></div>
+    <div class="bloque">
+      <p class="chiste">Ningún Motor fue maltratado durante este taller.</p>
+      <p class="chiste">Cualquier parecido con la realidad es exactamente el punto.</p>
+      <p class="chiste">Las opiniones son 100% anónimas y 0% culpa de quien las escribió.</p>
+      <p class="chiste">Los Frenos siguen en revisión.</p>
+    </div>
+    <div class="bloque"><div class="rot">PRÓXIMAMENTE</div>
+      <div class="nom">“EL REGRESO DEL EQUIPO”<small>en 30 días, en esta misma sala</small></div></div>
+    <div class="bloque"><div class="rot">Y UN APLAUSO PARA</div>
+      <div class="nom" style="font-size:38px">EL EQUIPO SOLTI</div></div>
+    <div class="fin">FIN</div>
+    <div class="mensaje">${MENSAJE_FINAL}</div>`;
+
+  cr.classList.add("on");
+  cr.setAttribute("aria-hidden", "false");
+  sfx("fin");
+  setTimeout(() => sfx("aplausos"), 1200);
+
+  const lento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (lento) { cr.classList.add("quieto"); return; }
+  const alto = roll.scrollHeight;
+  const dist = alto + window.innerHeight * 0.1;
+  const dur = Math.min(40, Math.max(24, Math.round(alto / 70)));   // ~30 s, igual que en los celulares
+  roll.style.setProperty("--dist", dist + "px");
+  roll.style.setProperty("--dur", dur + "s");
+  roll.classList.remove("rodando");
+  void roll.offsetWidth;            // reinicia la animación si se vuelve a rodar
+  roll.classList.add("rodando");
+}
+// Al entrar al cierre, los créditos ruedan solos (una sola vez por cierre).
+let creditosOn = false;
+function programarCreditos(ms) {
+  if (creditosOn) return;
+  creditosOn = true;
+  setTimeout(() => { if (S && S.phase === "arranque") rodarCreditos(); }, ms || 2200);
+}
+function cerrarCreditos() {
+  const cr = $("#credits");
+  cr.classList.remove("on", "quieto");
+  cr.setAttribute("aria-hidden", "true");
+  $("#roll").classList.remove("rodando");
+}
+$("#skip").onclick = cerrarCreditos;
+$("#credits").onclick = (e) => { if (e.target.id === "credits") cerrarCreditos(); };
+
+/* ---------------- pantallazo entre rondas ---------------- */
+function flash(t, s, after, ms) {
+  const f = $("#flash");
+  $("#flashT").textContent = t; $("#flashS").textContent = s || "";
+  f.classList.add("on");
+  setTimeout(() => { f.classList.remove("on"); if (after) after(); }, ms || 1700);
+}
+
+/* ---------------- avanzar y retroceder ---------------- */
+function nextRound() {
+  const i = idxOf(S.phase);
+  if (i === RONDAS.length - 1) {
+    if (confirm("¿Empezar un taller nuevo? Se borran los votos, las ideas y los nombres.")) go("/api/admin/reset");
+    return;
+  }
+  const next = RONDAS[i + 1];
+  const titulos = {
+    escaner: ["¡ESCÁNER LISTO!", "a ver qué somos"],
+    diagnostico: ["¡DIAGNÓSTICO!", "qué piezas fallan"],
+    taller: ["¡PIEZAS FUERA!", "hay que armarlas"],
+    arranque: ["¡APLAUSOS!", "para el equipo SOLTI"],
+  };
+  const t = titulos[next.id] || [next.titulo, next.sub];
+  if (next.id === "arranque") programarCreditos(4200);   // después del pantallazo de aplausos
+  if (next.id === "taller") sfx("clank");
+  else if (next.id === "arranque") { sfx("motor"); setTimeout(() => sfx("aplausos"), 1100); }
+  else sfx("ronda");
+  flash(t[0], t[1], () => go("/api/admin/phase", { phase: next.id }), next.id === "arranque" ? 3600 : 1700);
+}
+$("#bNext").onclick = nextRound;
+$("#bPrev").onclick = () => { const i = idxOf(S.phase); if (i > 0) go("/api/admin/phase", { phase: RONDAS[i - 1].id }); };
+
+/* ---------------- menú del facilitador ---------------- */
+$("#bMenu").onclick = () => {
+  const op = prompt(
+    "MENÚ DEL FACILITADOR\n\n" +
+    "1 · Ir a una ronda (1-7)\n" +
+    "2 · Recalcular las piezas averiadas\n" +
+    "3 · Copiar el resumen en texto\n" +
+    "4 · Copiar los datos (JSON)\n" +
+    "5 · Empezar un taller nuevo\n\n" +
+    "Escribe el número:", "");
+  if (!op) return;
+  if (op.trim() === "1") {
+    const n = prompt("Ronda:\n" + RONDAS.map((r, i) => (i + 1) + " · " + r.corto).join("\n"), String(idxOf(S.phase) + 1));
+    const i = Number(n) - 1; if (RONDAS[i]) go("/api/admin/phase", { phase: RONDAS[i].id });
+  } else if (op.trim() === "2") { if (confirm("¿Recalcular las 2 piezas averiadas con los votos actuales?")) go("/api/admin/retop"); }
+  else if (op.trim() === "3") copy(resumenTexto(), "Resumen copiado.");
+  else if (op.trim() === "4") copy(JSON.stringify(S, null, 2), "Datos copiados.");
+  else if (op.trim() === "5") { if (confirm("¿Empezar un taller nuevo? Se borra todo.")) go("/api/admin/reset"); }
+};
+
+/* ---------------- eventos del panel ---------------- */
+let acTimer = {};
+$("#panel").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.adj) { const [kind, id, d] = b.dataset.adj.split(":"); lastPiece = kind === "pieza" ? id : null; sfx("voto"); go("/api/admin/adjust", { kind, id, d: Number(d) }); return; }
+  if (b.id === "addveh") { const i = $("#newveh"); const name = i.value.trim(); if (name) { go("/api/admin/custom", { name }); i.value = ""; } return; }
+  if (b.dataset.addidea) { const i = $("#idea-" + b.dataset.addidea); const text = i.value.trim(); if (text) { go("/api/admin/idea", { piece: b.dataset.addidea, text }); i.value = ""; } return; }
+  if (b.dataset.del) { go("/api/admin/idea-delete", { id: b.dataset.del }); return; }
+  if (b.dataset.install) {
+    const [piece, idea] = b.dataset.install.split(":");
+    if (idea) sfx("instalar");
+    lastPiece = piece;
+    go("/api/admin/install", { piece, idea: idea || null });
+    return;
+  }
+  if (b.id === "addquien") { const i = $("#quien"); const name = i.value.trim(); if (name) { go("/api/admin/nombre", { name }); i.value = ""; } return; }
+  if (b.dataset.quita) { go("/api/admin/nombre-delete", { id: b.dataset.quita }); return; }
+  if (b.id === "rodar") { rodarCreditos(); return; }
+  if (b.id === "aplauso") { sfx("aplausos"); flash("¡APLAUSOS!", "para el equipo SOLTI", null, 3600); return; }
+  if (b.id === "copyTxt") { copy(resumenTexto(), "Resumen copiado."); return; }
+  if (b.id === "copyJson") { copy(JSON.stringify(S, null, 2), "Datos copiados."); return; }
+  if (b.id === "loadJson") {
+    const txt = prompt("Pega aquí los datos que copiaste:");
+    if (!txt) return;
+    try {
+      const d = JSON.parse(txt);
+      if (LIVE) { toast("Con servidor, carga los datos reemplazando partida.json."); return; }
+      S = Object.assign(freshLocal(), d); recalcLocal(); render(); toast("Datos cargados.");
+    } catch (e) { toast("Esos datos no se entienden."); }
+  }
+});
+$("#panel").addEventListener("keydown", (e) => {
+  if (e.key !== "Enter") return;
+  const t = e.target;
+  if (t.id === "newveh") { $("#addveh").click(); }
+  else if (t.id && t.id.startsWith("idea-")) { const b = $('[data-addidea="' + t.id.slice(5) + '"]'); if (b) b.click(); }
+  else if (t.id === "quien") { $("#addquien").click(); }
+});
+/* ---------------- teclado ---------------- */
+document.addEventListener("keydown", (e) => {
+  if (/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) return;
+  if (e.key === "ArrowRight") { e.preventDefault(); $("#bNext").click(); }
+  else if (e.key === "ArrowLeft") { e.preventDefault(); if (!$("#bPrev").disabled) $("#bPrev").click(); }
+  else if (e.key === " ") { e.preventDefault(); toggleTimer(); }
+});
+
+/* ---------------- detectar cambios para animar y sonar ---------------- */
+function reactTo(next) {
+  if (!prev) return;
+  const vA = Object.values(prev.vehicles || {}).reduce((a, b) => a + b, 0);
+  const vB = Object.values(next.vehicles || {}).reduce((a, b) => a + b, 0);
+  const pA = Object.values(prev.pieces || {}).reduce((a, b) => a + b, 0);
+  const pB = Object.values(next.pieces || {}).reduce((a, b) => a + b, 0);
+  if (prev.phase !== "arranque" && next.phase === "arranque") programarCreditos();
+  if (vB > vA || pB > pA) sfx("voto");
+  if ((next.ideas || []).length > (prev.ideas || []).length) sfx("voto");
+  // qué pieza cambió, para el "pop"
+  lastPiece = null;
+  for (const id of ORDER) if ((next.pieces[id] || 0) !== (prev.pieces[id] || 0)) lastPiece = id;
+  if (Object.keys(next.installed || {}).length > Object.keys(prev.installed || {}).length) {
+    for (const k of Object.keys(next.installed)) if (!prev.installed[k]) lastPiece = k;
+  }
+}
+
+/* ---------------- arranque ---------------- */
+function readAdmin() {
+  const u = new URL(location.href);
+  const k = u.searchParams.get("admin");
+  if (k) {
+    try { sessionStorage.setItem("tn-admin", k); } catch (e) {}
+    u.searchParams.delete("admin");
+    history.replaceState(null, "", u.pathname + (u.search || "") + u.hash);
+  }
+  try { admin = sessionStorage.getItem("tn-admin") || k || ""; } catch (e) { admin = k || ""; }
+}
+
+function connect() {
+  const es = new EventSource("/api/stream");
+  es.onmessage = (ev) => {
+    const next = JSON.parse(ev.data);
+    LIVE = true;
+    reactTo(next);
+    prev = S; S = next;
+    render();
+  };
+  es.onerror = () => { /* el navegador reintenta solo */ };
+}
+
+async function boot() {
+  readAdmin();
+  // El servidor dice si esta pantalla es la que presenta. Si no lo es, se ve todo
+  // pero no se toca nada, por mucho que alguien copie el enlace con la clave.
+  try {
+    const a = await fetch("/api/acceso", { cache: "no-store" });
+    if (a.ok) puedoMandar = !!(await a.json()).puedeMandar;
+  } catch (e) { puedoMandar = false; }
+  try {
+    const r = await fetch("/api/state", { cache: "no-store" });
+    if (!r.ok) throw new Error("no");
+    S = await r.json(); LIVE = true;
+    render();
+    connect();
+  } catch (e) {
+    LIVE = false;
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem("tn-solo") || "null"); } catch (e2) {}
+    S = saved ? Object.assign(freshLocal(), saved) : freshLocal();
+    S.joinUrl = location.origin + "/votar";
+    recalcLocal();
+    render();
+    toast("Sin servidor: el taller funciona solo, los votos se ponen a mano.");
+  }
+}
+boot();
+</script>
+</body>
+</html>

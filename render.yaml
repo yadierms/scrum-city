@@ -1,0 +1,16 @@
+# Receta para Render. Si creas el servicio con "Blueprint", esto lo deja casi
+# todo hecho: solo tendras que escribir la clave del facilitador.
+services:
+  - type: web
+    name: scrum-city
+    runtime: node
+    plan: free
+    buildCommand: ""
+    startCommand: node server.js
+    envVars:
+      # El taller publicado se maneja con la clave, no desde "esta computadora".
+      - key: ADMIN_REMOTO
+        value: "1"
+      # Render te la pide al crear el servicio. Inventate una larga y guardala.
+      - key: ADMIN_KEY
+        sync: false

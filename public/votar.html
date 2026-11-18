@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#110724">
+<title>Mi taller · SCRUM CITY</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Rubik:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#110724; --panel:#1C0F3A; --panel2:#241351; --line:#3A2763;
+  --ink:#F5EEFF; --ink2:#B7A5D6;
+  --pink:#FF2E88; --orange:#FF8A3D; --gold:#FFC857; --purple:#C26BFF; --violet:#7A3BFF;
+  --cyan:#2EE6D6; --red:#FF4D6A; --green:#7CFFB2;
+  --title:Anton,"Arial Black",Impact,sans-serif;
+  --body:Rubik,"Segoe UI",system-ui,-apple-system,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.4;
+  background-image:radial-gradient(900px 400px at 50% -140px,#3D1466 0%,transparent 72%);
+  padding-bottom:env(safe-area-inset-bottom)}
+header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:9px;padding:11px 15px;
+  background:linear-gradient(96deg,#1A0B33,#3D1466 45%,#A3207A 100%);border-bottom:1px solid var(--line)}
+header .t{font-family:var(--title);font-size:19px;letter-spacing:.6px}
+header .st{margin-left:auto;font-size:12px;letter-spacing:.8px;text-transform:uppercase;color:var(--cyan);
+  border:1px solid var(--cyan);border-radius:999px;padding:3px 9px}
+header .st.off{color:var(--gold);border-color:var(--gold)}
+main{max-width:620px;margin:0 auto;padding:15px 14px 44px;display:grid;gap:13px}
+h1{font-family:var(--title);font-size:29px;line-height:1.08;margin:0;letter-spacing:.4px;
+  background:linear-gradient(92deg,var(--gold),var(--orange) 42%,var(--pink) 74%,var(--purple));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+h2{font-family:var(--title);font-size:21px;margin:0 0 3px;letter-spacing:.4px}
+p{margin:0}
+.sub{color:var(--ink2);font-size:16px}
+.tag{display:inline-block;font-size:11px;letter-spacing:1.1px;text-transform:uppercase;color:var(--gold);
+  border:1px solid var(--gold);border-radius:999px;padding:2px 9px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px}
+.hero{text-align:center;display:grid;gap:9px;padding:30px 18px}
+.hero .em{font-size:54px;line-height:1}
+
+.opt{display:grid;grid-template-columns:30px 1fr;gap:12px;align-items:start;width:100%;text-align:left;
+  background:var(--panel);border:2px solid var(--line);border-radius:15px;padding:14px;cursor:pointer;margin:0}
+.opt input{width:24px;height:24px;margin:1px 0 0;accent-color:var(--pink)}
+.opt.on{border-color:var(--pink);background:rgba(255,46,136,.12);box-shadow:0 0 18px rgba(255,46,136,.3)}
+.opt.off{opacity:.42}
+.opt b{display:block;font-size:19px;font-weight:800;margin-bottom:2px}
+.opt .g{color:var(--cyan);font-size:15px;display:block}
+.opt .r{color:var(--red);font-size:15px;display:block}
+.opt .m{color:var(--ink2);font-size:15px;display:block}
+
+.btn{border:0;border-radius:14px;padding:17px 18px;width:100%;font-family:var(--title);font-size:21px;letter-spacing:.6px;
+  background:linear-gradient(92deg,var(--pink),var(--orange));color:#2A0616;cursor:pointer;
+  box-shadow:0 0 22px rgba(255,46,136,.45)}
+.btn:disabled{background:var(--panel2);color:var(--ink2);box-shadow:none}
+.btn.sm{font-size:16px;padding:12px 14px}
+.btn.ghost{background:var(--panel);color:var(--ink);border:1px solid var(--line);box-shadow:none}
+
+textarea,input[type=text]{width:100%;background:var(--panel2);border:2px solid var(--line);border-radius:13px;
+  padding:13px;color:var(--ink);font:inherit;font-size:17px}
+textarea{min-height:110px;resize:vertical}
+textarea:focus,input:focus{outline:none;border-color:var(--pink)}
+.cnt{font-size:13px;color:var(--ink2);text-align:right}
+
+.ok{background:rgba(46,230,214,.14);border:1px solid var(--cyan);color:var(--cyan);border-radius:12px;padding:11px 13px;font-weight:700}
+.err{background:rgba(255,77,106,.14);border:1px solid var(--red);color:var(--red);border-radius:12px;padding:11px 13px;font-weight:700}
+.chip{display:inline-block;background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:4px 11px;font-size:14px;color:var(--ink2);margin:2px 4px 0 0}
+.chip.done{color:var(--cyan);border-color:var(--cyan)}
+.counter{font-family:var(--title);font-size:22px;color:var(--pink)}
+
+.idea{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:var(--panel2);
+  border:1px solid var(--line);border-radius:13px;padding:11px 12px;font-size:16px}
+.idea.win{border-color:var(--cyan);background:rgba(46,230,214,.1)}
+.idea .fav{border:1px solid var(--line);background:var(--panel);border-radius:11px;padding:9px 12px;
+  font-weight:800;color:var(--gold);cursor:pointer;white-space:nowrap;font-size:15px}
+.idea .fav.on{background:var(--gold);color:#2A0616;border-color:var(--gold)}
+.empty{color:var(--ink2);font-style:italic;font-size:15px}
+.ac{background:var(--panel2);border:1px solid var(--line);border-radius:13px;padding:11px 12px}
+.ac b{color:var(--gold)}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+/* los créditos en el celular */
+.cine{position:relative;height:62vh;overflow:hidden;border-radius:18px;
+  background:radial-gradient(420px 320px at 50% 120%,#3D1466 0%,#110724 72%);border:1px solid var(--line)}
+.cine.quieto{overflow:auto}
+.croll{position:absolute;left:0;right:0;top:100%;padding:0 18px;text-align:center}
+.cine.quieto .croll{position:static;top:auto;padding:22px 18px}
+.croll.rodando{animation:croll var(--dur,34s) linear forwards}
+@keyframes croll{from{transform:translateY(0)}to{transform:translateY(calc(-1 * var(--dist,1600px)))}}
+.ctitulo{font-family:var(--title);font-size:40px;line-height:1;
+  background:linear-gradient(92deg,var(--gold),var(--orange) 40%,var(--pink) 72%,var(--purple));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.csub{color:var(--cyan);font-size:17px;margin-bottom:30px;text-shadow:0 0 12px rgba(46,230,214,.7)}
+.cbloque{margin-bottom:26px}
+.crot{font-family:var(--title);font-size:13px;letter-spacing:2.4px;color:var(--gold);margin-bottom:5px}
+.cnom{font-size:19px;font-weight:800;line-height:1.4}
+.cnom.grande{font-size:27px}
+.cpie{color:var(--ink2);font-size:14px;margin-top:3px}
+.chiste p{color:var(--ink2);font-size:14px;font-style:italic;margin:5px 0;line-height:1.55}
+.cfin{font-family:var(--title);font-size:76px;line-height:.9;color:var(--pink);
+  text-shadow:0 0 28px rgba(255,46,136,.85);margin:34px 0 14px}
+.cmensaje{font-size:17px;line-height:1.55;margin-bottom:26px}
+.cmensaje b{color:var(--gold)}
+.palmas{text-align:center;font-family:var(--title);font-size:26px;letter-spacing:1px;color:var(--gold);
+  padding:12px 0 2px;animation:palmear 1s ease-in-out infinite}
+@keyframes palmear{0%,100%{transform:scale(1)}50%{transform:scale(1.09)}}
+
+.sinpieza{color:var(--gold);font-size:15px;line-height:1.45;margin:4px 0 14px;
+  border-left:3px solid var(--gold);padding-left:11px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.bob{animation:bob 2.2s ease-in-out infinite}
+</style>
+</head>
+<body>
+<header><span class="t">SCRUM CITY</span><span class="st" id="st">conectando…</span></header>
+<main id="app" aria-live="polite"><div class="card hero"><div class="em">🔧</div><p>Entrando al taller…</p></div></main>
+
+<script>
+"use strict";
+const app = document.getElementById("app");
+const stEl = document.getElementById("st");
+const esc = (t) => String(t == null ? "" : t).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+/* identificador anónimo del celular: solo sirve para poder cambiar tu voto */
+let token;
+try {
+  token = localStorage.getItem("tn-token");
+  if (!token) {
+    token = (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36));
+    localStorage.setItem("tn-token", token);
+  }
+} catch (e) { token = Math.random().toString(36).slice(2) + Date.now().toString(36); }
+
+const mem = (k) => { try { return JSON.parse(localStorage.getItem("tn-" + k)); } catch (e) { return null; } };
+const keep = (k, v) => { try { localStorage.setItem("tn-" + k, JSON.stringify(v)); } catch (e) {} };
+const buzz = (ms) => { try { if (navigator.vibrate) navigator.vibrate(ms || 35); } catch (e) {} };
+
+let S = null, flash = "", shownPhase = null;
+// "selv" es lo que tienes marcado; "v" es lo que ya enviaste.
+let sel = { v: mem("selv") || mem("v"), p: mem("p") || [] };
+let bay = null;        // pieza elegida en el taller
+
+async function post(url, data) {
+  const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(Object.assign({ token }, data)) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || "No se pudo enviar. Intenta otra vez.");
+  return j;
+}
+// El nombre va SIN el token del voto: ni siquiera viaja por la red junto a él,
+// así no hay forma de atar un nombre a lo que esa persona votó.
+async function postNombre(data) {
+  const r = await fetch("/api/nombre", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || "No se pudo enviar.");
+  return j;
+}
+const ok = (m) => { flash = `<div class="ok">${esc(m)}</div>`; buzz(40); };
+const bad = (m) => { flash = `<div class="err">${esc(m)}</div>`; buzz([20, 60, 20]); };
+
+const pName = (id) => ((S.piecesDef || []).find((p) => p.id === id) || { name: id }).name;
+const pMean = (id) => ((S.piecesDef || []).find((p) => p.id === id) || { mean: "" }).mean;
+const vName = (id) => ((S.vehiclesDef || []).find((v) => v.id === id) || { name: "—" }).name;
+
+/* ====================== pantallas ====================== */
+
+function bloqueNombre() {
+  const yo = mem("mi-nombre");
+  return `<div class="card">
+    <h2>${yo ? "ESTÁS EN LOS CRÉDITOS" : "SAL EN LOS CRÉDITOS"}</h2>
+    <p class="sub">Tu nombre sale al final, en los créditos de la película. Es aparte: <b>nadie puede ver qué votaste tú</b>.</p>
+    ${yo ? `<p style="font-size:22px;font-weight:800;color:var(--cyan);margin:8px 0">${esc(yo)}</p>` : ""}
+    <input type="text" id="nombre" maxlength="24" placeholder="Tu nombre o como te dicen" value="${esc(yo || "")}">
+    <button class="btn sm" id="sendNombre" style="margin-top:9px">${yo ? "CAMBIAR MI NOMBRE" : "PONERME EN LOS CRÉDITOS"}</button>
+    <p class="sub" style="margin-top:7px">Si prefieres no salir, no pasa nada: déjalo en blanco.</p>
+  </div>`;
+}
+
+function viewLobby() {
+  return `<div class="card hero"><div class="em bob">🔧</div>
+    <h1>ESTÁS DENTRO</h1>
+    <p class="sub">Eres parte del equipo que va a tunear el vehículo. En un momento aparecerá aquí la primera misión.</p>
+    <p class="sub">Nadie sabrá qué votaste. No cierres esta página.</p></div>
+    ${bloqueNombre()}`;
+}
+
+function viewEscaner() {
+  const ya = mem("v");
+  return `<span class="tag">Ronda 1 · escáner</span>
+    <h1>¿QUÉ VEHÍCULO SOMOS HOY?</h1>
+    <p class="sub">No el que nos gustaría ser: el que somos esta semana. Elige uno.</p>
+    ${flash}
+    ${(S.vehiclesDef || []).map((v) => `
+      <label class="opt ${sel.v === v.id ? "on" : ""}">
+        <input type="radio" name="v" value="${esc(v.id)}" ${sel.v === v.id ? "checked" : ""}>
+        <span><b>${esc(v.name)}</b>
+          ${v.good ? `<span class="g">✓ ${esc(v.good)}</span>` : ""}
+          ${v.bad ? `<span class="r">✗ ${esc(v.bad)}</span>` : ""}</span>
+      </label>`).join("")}
+    <button class="btn" id="send" ${sel.v ? "" : "disabled"}>${ya ? "CAMBIAR MI VOTO" : "ENVIAR MI VOTO"}</button>
+    ${ya ? `<p class="sub">Ya votaste. Puedes cambiarlo mientras el escáner esté abierto.</p>` : ""}`;
+}
+
+function viewDiagnostico() {
+  const ya = mem("pdone");
+  return `<span class="tag">Ronda 2 · diagnóstico</span>
+    <h1>¿QUÉ PIEZAS FALLAN?</h1>
+    <p class="sub"><b style="color:var(--gold)">No marques lo que te gustaría: marca lo que de verdad nos está pasando.</b> Hasta 2 frases. Las 2 más votadas se desmontan y las arreglamos hoy.</p>
+    <p>Marcadas: <span class="counter">${sel.p.length}/2</span></p>
+    ${flash}
+    ${(S.piecesDef || []).map((p) => {
+      const on = sel.p.includes(p.id), off = !on && sel.p.length >= 2;
+      return `<label class="opt ${on ? "on" : ""} ${off ? "off" : ""}">
+        <input type="checkbox" value="${esc(p.id)}" ${on ? "checked" : ""} ${off ? "disabled" : ""}>
+        <span><b>${esc(p.name)}</b><span class="m">${esc(p.falla || p.mean)}</span></span></label>`;
+    }).join("")}
+    ${(S.piezasFaltan || []).length ? `<p class="sinpieza">${esc(S.faltanNota || ("Este vehículo no trae " + S.piezasFaltan.join(", ") + "."))}</p>` : ""}
+    <button class="btn" id="send" ${sel.p.length ? "" : "disabled"}>${ya ? "CAMBIAR MI VOTO" : "ENVIAR MI VOTO"}</button>
+    ${ya ? `<p class="sub">Ya votaste. Puedes cambiarlo mientras el diagnóstico esté abierto.</p>` : ""}`;
+}
+
+function viewTaller() {
+  const top = S.top || [];
+  if (!top.length) return `<div class="card hero"><div class="em">🛠️</div><h2>NO HAY PIEZAS DESMONTADAS</h2><p class="sub">Mira la pantalla grande.</p></div>`;
+  if (!bay || !top.includes(bay)) {
+    return `<span class="tag">Ronda 3 · taller</span>
+      <h1>¿QUÉ PIEZA ARREGLAMOS?</h1>
+      <p class="sub">Estas son las piezas desmontadas. Puedes proponer ideas para las dos, una por una. Toca con cuál quieres empezar.</p>
+      ${top.map((pid) => {
+        const mias = mem("mis-" + pid) || 0, fav = mem("fav-" + pid);
+        const n = (S.ideas || []).filter((i) => i.piece === pid).length;
+        return `<button class="opt" data-bay="${esc(pid)}" style="grid-template-columns:1fr;cursor:pointer">
+        <span><b>${esc(pName(pid))}</b><span class="m">${esc(pMean(pid))}</span>
+        <span style="display:block;margin-top:7px">
+          <span class="chip">${n === 1 ? "1 idea" : n + " ideas"}</span>
+          ${mias ? `<span class="chip done">✓ mandaste ${mias}</span>` : ""}
+          ${fav ? `<span class="chip done">★ ya apoyaste</span>` : ""}
+        </span></span></button>`;
+      }).join("")}`;
+  }
+  const ideas = (S.ideas || []).filter((i) => i.piece === bay).sort((a, b) => (b.favs || 0) - (a.favs || 0));
+  const inst = S.installed[bay];
+  const myFav = mem("fav-" + bay);
+  const mias = mem("mis-" + bay) || 0;
+  const lim = (S.limites && S.limites.ideasPorPersona) || 3;
+  // Piezas donde esta persona todavía no manda idea ni apoya ninguna.
+  const pend = top.filter((p) => p !== bay && !(mem("mis-" + p) || mem("fav-" + p)));
+  return `<span class="tag">Ronda 3 · taller</span>
+    <h1>${esc(pName(bay)).toUpperCase()}</h1>
+    <p class="sub">${esc(pMean(bay))}</p>
+    ${flash}
+    <div class="card">
+      <h2>TU IDEA</h2>
+      <p class="sub">¿Qué podemos hacer en las próximas semanas para arreglar esta pieza? Concreto y pequeño.</p>
+      <textarea id="idea" maxlength="140" placeholder="Ejemplo: cada lunes 10 min para repartir las tareas de la semana"></textarea>
+      <div class="cnt" id="cnt">0/140</div>
+      <button class="btn" id="sendIdea" ${mias >= lim ? "disabled" : ""}>${mias >= lim ? "YA ENVIASTE TUS " + lim + " IDEAS" : "ENVIAR IDEA"}</button>
+    </div>
+    <div class="card">
+      <h2>IDEAS DE TODOS · ${ideas.length}</h2>
+      <p class="sub">Toca ★ en la que más te gusta. Una sola por pieza; si cambias de opinión, toca otra.</p>
+      <div style="display:grid;gap:9px;margin-top:9px">
+        ${ideas.length ? ideas.map((i) => `<div class="idea ${inst === i.id ? "win" : ""}">
+          <div>${esc(i.text)}${inst === i.id ? `<br><span class="chip" style="color:var(--cyan);border-color:var(--cyan);margin-top:5px">INSTALADA</span>` : ""}</div>
+          <button class="fav ${myFav === i.id ? "on" : ""}" data-fav="${esc(i.id)}" aria-label="Apoyar esta idea">★ ${i.favs || 0}</button>
+        </div>`).join("") : `<p class="empty">Todavía no hay ideas. Envía la primera.</p>`}
+      </div>
+    </div>
+    <button class="btn ghost sm" data-bay="">◀ VER LAS OTRAS PIEZAS</button>
+    ${pend.length
+      ? `<p class="sub" style="text-align:center">Te falta opinar en: ${pend.map((p) => esc(pName(p))).join(", ")}.</p>`
+      : `<p class="sub" style="text-align:center">Ya opinaste en todas las piezas. ¡Gracias!</p>`}`;
+}
+
+// Cada puesto de la película tiene su cargo, igual que en la pantalla grande.
+const ROL = {
+  comp: "DIRECCIÓN DE MOTOR", conf: "JEFE DE COMBUSTIBLE", org: "DIRECCIÓN GENERAL",
+  com: "SONIDO Y COMUNICACIONES", col: "COORDINACIÓN DE MOVIMIENTO", res: "ESPECIALISTA EN FRENADAS",
+  apr: "GUION Y DOCUMENTACIÓN", amb: "AMBIENTACIÓN Y VESTUARIO",
+};
+
+function viewArranque() {
+  const n = mem("notas") || 0;
+  const top = S.top || [];
+  const nombres = S.nombres || [];
+  const votos = Object.values(S.vehicles || {}).reduce((a, b) => a + b, 0);
+  const tecnico = top.map((pid) => {
+    const idea = (S.ideas || []).find((i) => i.id === S.installed[pid]);
+    return `<div class="cbloque"><div class="crot">${esc(ROL[pid] || pName(pid))}</div>
+      <div class="cnom">${esc(idea ? idea.text : "pieza aún desmontada")}</div></div>`;
+  }).join("");
+  const primera = top.length ? (S.ideas || []).find((i) => i.id === S.installed[top[0]]) : null;
+
+  return `<div class="cine" id="cine">
+    <div class="croll" id="croll">
+      <div class="ctitulo">SCRUM CITY</div>
+      <div class="csub">tuneando el equipo SOLTI</div>
+      <div class="cbloque"><div class="crot">REPARTO</div>
+        ${nombres.length
+          ? `<div class="cnom">${nombres.map((x) => esc(x.name)).join(" · ")}</div>
+             <div class="cpie">y sus ${votos} votos, que siguen siendo secretos</div>`
+          : `<div class="cnom">${votos} mecánicos</div><div class="cpie">que votaron sin decir su nombre</div>`}</div>
+      <div class="cbloque"><div class="crot">EQUIPO TÉCNICO</div></div>
+      ${tecnico}
+      <div class="cbloque"><div class="crot">EFECTOS ESPECIALES</div>
+        <div class="cnom">${(S.ideas || []).length} ideas</div>
+        <div class="cpie">salidas de los celulares de esta sala</div></div>
+      <div class="cbloque"><div class="crot">PRIMERA ESCENA DE LA SECUELA</div>
+        <div class="cnom">${esc(primera ? primera.text : "lo que hagamos el lunes")}</div>
+        <div class="cpie">en 30 días sabremos si pasó</div></div>
+      <div class="cbloque chiste">
+        <p>Ningún Motor fue maltratado durante este taller.</p>
+        <p>Cualquier parecido con la realidad es exactamente el punto.</p>
+        <p>Las opiniones son 100% anónimas y 0% culpa de quien las escribió.</p>
+        <p>Los Frenos siguen en revisión.</p></div>
+      <div class="cbloque"><div class="crot">Y UN APLAUSO PARA</div>
+        <div class="cnom grande">EL EQUIPO SOLTI</div></div>
+      <div class="cfin">FIN</div>
+      <div class="cmensaje">Hoy no arreglamos el vehículo.<br><br>
+        Hoy hicimos algo más difícil: <b>ponernos de acuerdo en qué está sonando raro</b>.<br><br>
+        Lo demás se arregla el lunes, cuando alguien toque la primera pieza.</div>
+      <div class="cpie" style="margin-bottom:34px">Toca los créditos para pararlos</div>
+    </div>
+  </div>
+  <div class="palmas">👏 ¡APLAUDE!</div>
+  ${flash}
+  ${bloqueNombre()}`;
+}
+
+const VIEWS = { lobby: viewLobby, escaner: viewEscaner, diagnostico: viewDiagnostico, taller: viewTaller, arranque: viewArranque };
+const ESTADO = { lobby: "en espera", escaner: "escáner", diagnostico: "diagnóstico", taller: "taller", arranque: "cierre" };
+
+/* ====================== render y eventos ====================== */
+
+function render() {
+  if (!S) return;
+  stEl.textContent = ESTADO[S.phase] || S.phase;
+  stEl.classList.remove("off");
+  app.innerHTML = (VIEWS[S.phase] || viewLobby)();
+  wire();
+}
+
+function wire() {
+  // escáner
+  app.querySelectorAll('input[name=v]').forEach((i) => i.onchange = () => { sel.v = i.value; keep("selv", sel.v); flash = ""; render(); });
+  // diagnóstico
+  app.querySelectorAll('input[type=checkbox]').forEach((i) => i.onchange = () => {
+    sel.p = i.checked ? sel.p.concat(i.value).slice(0, 3) : sel.p.filter((x) => x !== i.value);
+    keep("p", sel.p); flash = ""; render();
+  });
+  // contador de caracteres
+  const ta = app.querySelector("textarea"), cnt = document.getElementById("cnt");
+  if (ta && cnt) { const max = ta.getAttribute("maxlength"); const upd = () => cnt.textContent = ta.value.length + "/" + max; ta.oninput = upd; upd(); }
+
+  const send = document.getElementById("send");
+  if (send) send.onclick = async () => {
+    try {
+      if (S.phase === "escaner") { await post("/api/vehiculo", { id: sel.v }); keep("v", sel.v); ok("¡Listo! Tu voto quedó registrado."); }
+      else { await post("/api/piezas", { ids: sel.p }); keep("pdone", true); ok("¡Listo! Tu diagnóstico quedó registrado."); }
+    } catch (e) { bad(e.message); }
+    render();
+  };
+
+  const si = document.getElementById("sendIdea");
+  if (si) si.onclick = async () => {
+    const t = (document.getElementById("idea").value || "").trim();
+    if (!t) return bad("Escribe tu idea primero.");
+    try { await post("/api/idea", { piece: bay, text: t }); keep("mis-" + bay, (mem("mis-" + bay) || 0) + 1); ok("¡Idea enviada! Ya aparece en la pantalla."); }
+    catch (e) { bad(e.message); }
+    render();
+  };
+
+  const cine = document.getElementById("cine");
+  if (cine) {
+    const roll = document.getElementById("croll");
+    const lento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (lento) { cine.classList.add("quieto"); }
+    else {
+      // se mide el alto real del texto y se ajusta la duración del rodado
+      requestAnimationFrame(() => {
+        const alto = roll.scrollHeight;
+        roll.style.setProperty("--dist", (alto + 40) + "px");
+        roll.style.setProperty("--dur", Math.min(40, Math.max(24, Math.round(alto / 48))) + "s");   // ~30 s, igual que la pantalla
+        roll.classList.add("rodando");
+      });
+      cine.onclick = () => {              // un toque y los créditos se quedan quietos
+        if (!roll.classList.contains("rodando")) return;
+        const y = roll.getBoundingClientRect().top - cine.getBoundingClientRect().top;
+        roll.classList.remove("rodando");
+        roll.style.transform = "translateY(" + y + "px)";
+        cine.classList.add("quieto");
+      };
+    }
+  }
+
+  const bn = document.getElementById("sendNombre");
+  if (bn) bn.onclick = async () => {
+    const t = (document.getElementById("nombre").value || "").trim();
+    if (!t) return bad("Escribe tu nombre primero.");
+    try {
+      const r = await postNombre({ name: t, id: mem("mi-nombre-id") || undefined });
+      keep("mi-nombre-id", r.id); keep("mi-nombre", t);
+      ok("¡Listo! Sales en los créditos.");
+    } catch (e) { bad(e.message); }
+    render();
+  };
+
+  app.querySelectorAll("[data-bay]").forEach((b) => b.onclick = () => { bay = b.dataset.bay || null; flash = ""; render(); });
+  app.querySelectorAll("[data-fav]").forEach((b) => b.onclick = async () => {
+    try {
+      const r = await post("/api/idea-fav", { id: b.dataset.fav });
+      keep("fav-" + bay, r.on ? b.dataset.fav : null);
+      buzz(30);
+    } catch (e) { bad(e.message); render(); }
+  });
+}
+
+/* ====================== conexión ====================== */
+function connect() {
+  const es = new EventSource("/api/stream?r=phone");
+  es.onmessage = (ev) => {
+    const next = JSON.parse(ev.data);
+    const cambio = !S || next.phase !== S.phase;
+    const escribiendo = document.activeElement && /^(TEXTAREA|INPUT)$/.test(document.activeElement.tagName);
+    const antes = S;
+    S = next;
+    if (cambio) {
+      flash = "";
+      buzz(next.phase === "arranque" ? [40, 60, 40, 60, 40, 60, 120] : [30, 50, 30]);
+      render(); return;
+    }
+    if (S.phase === "arranque") return;                        // no reiniciar los créditos a medio rodar
+    if (escribiendo) return;                                   // no pisar lo que estás escribiendo
+    if (!antes) { render(); return; }
+    // refrescar solo si cambió algo que se ve
+    const sig = (x) => JSON.stringify([x.vehiclesDef.length, x.top, x.ideas, x.installed, x.nombres]);
+    if (sig(antes) !== sig(next)) render();
+  };
+  es.onerror = () => {
+    stEl.textContent = "sin señal"; stEl.classList.add("off");
+    if (!S) app.innerHTML = `<div class="card hero"><div class="em">📶</div><h2>NO HAY SEÑAL</h2>
+      <p class="sub">Revisa que estés en la misma red Wi-Fi del taller y vuelve a abrir el enlace.</p></div>`;
+  };
+}
+connect();
+</script>
+</body>
+</html>

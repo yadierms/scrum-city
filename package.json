@@ -1,0 +1,13 @@
+{
+  "name": "scrum-city",
+  "version": "1.0.0",
+  "description": "SCRUM CITY · tuneando el equipo SOLTI — taller en vivo, sin dependencias",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
