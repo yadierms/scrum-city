@@ -36,7 +36,7 @@ button{font:inherit;color:inherit}
 #panel{overflow:auto;padding-right:6px;display:grid;gap:12px;align-content:start}
 #bay{display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:8px;min-height:0}
 /* modo lectura: la pantalla se ve igual, pero no se toca */
-body.lectura #bMenu{display:none}
+body.lectura #bMenu,body.lectura #bNuevo{display:none}
 body.lectura #panel button,body.lectura #panel input,body.lectura #panel textarea{opacity:.38;pointer-events:none}
 body.lectura #bench .big{opacity:.4}
 @media (max-width:1100px){#stage{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}#bay{display:none}}
@@ -64,6 +64,10 @@ body.lectura #bench .big{opacity:.4}
 .ico{background:var(--panel);border:1px solid var(--line);border-radius:10px;width:40px;height:40px;font-size:18px;cursor:pointer;display:grid;place-items:center}
 .ico:hover{border-color:var(--purple)}
 .ico.on{background:var(--violet);border-color:var(--purple)}
+.ico.danger{color:var(--red)}
+.ico.danger:hover{border-color:var(--red)}
+.ico.armado{background:var(--red);border-color:var(--red);color:#fff;animation:late .7s ease-in-out infinite}
+@keyframes late{0%,100%{transform:scale(1)}50%{transform:scale(1.14)}}
 #clock{font-family:var(--mono);font-size:30px;font-weight:700;color:var(--green);text-shadow:0 0 14px rgba(124,255,178,.6);min-width:104px;text-align:center}
 #clock.low{color:var(--gold);text-shadow:0 0 14px rgba(255,200,87,.8)}
 #clock.zero{color:var(--red);text-shadow:0 0 14px rgba(255,77,106,.8)}
@@ -314,6 +318,7 @@ svg.car .pc.st-fix .smoke:nth-child(3){animation-delay:1.7s}
       <button class="ico" id="bTimer" aria-label="Iniciar o pausar el cronómetro" title="Iniciar/pausar (barra espaciadora)">▶</button>
       <button class="ico" id="bTreset" aria-label="Reiniciar el cronómetro" title="Reiniciar el cronómetro">↺</button>
       <button class="ico" id="bSound" aria-label="Silenciar o activar los sonidos" title="Sonido">🔊</button>
+      <button class="ico danger" id="bNuevo" aria-label="Empezar un taller nuevo" title="Empezar un taller nuevo (borra todo)">⟲</button>
       <button class="ico" id="bMenu" aria-label="Menú del facilitador" title="Menú">⚙</button>
     </div>
   </div>
@@ -691,6 +696,20 @@ function toggleTimer() {
   drawClock();
 }
 $("#bTimer").onclick = toggleTimer;
+// Reiniciar el taller: dos toques, para no borrarlo todo por un roce.
+let nuevoHasta = 0;
+$("#bNuevo").onclick = () => {
+  const b = $("#bNuevo");
+  if (Date.now() < nuevoHasta) {
+    nuevoHasta = 0; b.classList.remove("armado");
+    sfx("clank"); go("/api/admin/reset"); toast("Taller nuevo. Todo en blanco.");
+    return;
+  }
+  nuevoHasta = Date.now() + 8000;
+  b.classList.add("armado");
+  toast("Toca otra vez para borrar votos, ideas y nombres.");
+  setTimeout(() => { if (Date.now() >= nuevoHasta) { nuevoHasta = 0; b.classList.remove("armado"); } }, 8100);
+};
 $("#bTreset").onclick = () => { if (tick) { clearInterval(tick); tick = null; } timers[S.phase] = ronda().min * 60; drawClock(); };
 
 /* ---------------- dibujo del vehículo ---------------- */

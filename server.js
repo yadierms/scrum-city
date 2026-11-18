@@ -469,7 +469,9 @@ const server = http.createServer(async (req, res) => {
       if (mio) { mio.name = name; broadcast(); return send(res, 200, { ok: true, id: mio.id }); }
       if (st.nombres.length >= MAX_NOMBRES) return send(res, 429, { error: "Ya no caben más nombres en los créditos." });
       const nuevo = { id: newId(), name };
-      st.nombres.push(nuevo);
+      // En posición al azar: si fueran en orden de llegada, ese orden diría
+      // quién votó primero, y los votos se guardan en ese mismo orden.
+      st.nombres.splice(crypto.randomInt(st.nombres.length + 1), 0, nuevo);
       broadcast(); return send(res, 200, { ok: true, id: nuevo.id });
     }
 
@@ -528,7 +530,7 @@ const server = http.createServer(async (req, res) => {
         if (!name) return send(res, 400, { error: "Escribe el nombre." });
         st.nombres = st.nombres || [];
         if (st.nombres.length >= MAX_NOMBRES) return send(res, 429, { error: "Ya no caben más nombres." });
-        st.nombres.push({ id: newId(), name });
+        st.nombres.splice(crypto.randomInt(st.nombres.length + 1), 0, { id: newId(), name });
       } else if (a === "nombre-delete") {
         st.nombres = (st.nombres || []).filter((n) => n.id !== b.id);
       } else if (a === "reset") {

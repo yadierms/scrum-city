@@ -166,6 +166,20 @@ const vName = (id) => ((S.vehiclesDef || []).find((v) => v.id === id) || { name:
 
 /* ====================== pantallas ====================== */
 
+// Sin nombre no se entra: es lo primero que ve quien escanea.
+function vistaNombre() {
+  return `<div class="card hero"><div class="em bob">🔧</div>
+    <h1>¿QUIÉN ERES?</h1>
+    <p class="sub">Escribe tu nombre para entrar al taller.</p></div>
+    ${flash}
+    <div class="card">
+      <h2>TU NOMBRE</h2>
+      <p class="sub">Sale en los créditos del final. Va aparte de los votos: <b>nadie puede ver qué votaste tú</b>.</p>
+      <input type="text" id="nombre" maxlength="24" placeholder="Tu nombre o como te dicen">
+      <button class="btn" id="sendNombre" style="margin-top:9px">ENTRAR AL TALLER</button>
+    </div>`;
+}
+
 function bloqueNombre() {
   const yo = mem("mi-nombre");
   return `<div class="card">
@@ -174,7 +188,6 @@ function bloqueNombre() {
     ${yo ? `<p style="font-size:22px;font-weight:800;color:var(--cyan);margin:8px 0">${esc(yo)}</p>` : ""}
     <input type="text" id="nombre" maxlength="24" placeholder="Tu nombre o como te dicen" value="${esc(yo || "")}">
     <button class="btn sm" id="sendNombre" style="margin-top:9px">${yo ? "CAMBIAR MI NOMBRE" : "PONERME EN LOS CRÉDITOS"}</button>
-    <p class="sub" style="margin-top:7px">Si prefieres no salir, no pasa nada: déjalo en blanco.</p>
   </div>`;
 }
 
@@ -338,7 +351,9 @@ function render() {
   if (!S) return;
   stEl.textContent = ESTADO[S.phase] || S.phase;
   stEl.classList.remove("off");
-  app.innerHTML = (VIEWS[S.phase] || viewLobby)();
+  // quien no ha dicho su nombre no ve el taller todavía
+  const falta = !mem("mi-nombre") && S.phase !== "arranque";
+  app.innerHTML = falta ? vistaNombre() : (VIEWS[S.phase] || viewLobby)();
   wire();
 }
 
@@ -399,10 +414,11 @@ function wire() {
   if (bn) bn.onclick = async () => {
     const t = (document.getElementById("nombre").value || "").trim();
     if (!t) return bad("Escribe tu nombre primero.");
+    const yaEstaba = !!mem("mi-nombre");
     try {
       const r = await postNombre({ name: t, id: mem("mi-nombre-id") || undefined });
       keep("mi-nombre-id", r.id); keep("mi-nombre", t);
-      ok("¡Listo! Sales en los créditos.");
+      ok(yaEstaba ? "¡Listo! Sales en los créditos." : "¡Bienvenido al taller!");
     } catch (e) { bad(e.message); }
     render();
   };

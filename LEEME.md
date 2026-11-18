@@ -5,7 +5,7 @@ Taller de integración de 60 minutos convertido en juego. No es una presentació
 Dos pantallas:
 
 - **La pantalla grande** (`/`) se proyecta en la sala. Es el tablero del juego.
-- **El celular** (`/votar`) es el mando de cada participante. Escanean un QR y votan sin dar su nombre.
+- **El celular** (`/votar`) es el mando de cada participante. Escanean un QR, escriben su nombre y votan. El nombre es solo para los créditos: nadie puede ver qué votó cada quien.
 
 Solo necesita **Node.js 18 o superior**. Sin `npm install`.
 
@@ -88,11 +88,17 @@ Los celulares cambian solos de pantalla cuando mueves la ronda.
 
 ## Los nombres y los créditos
 
-Cada quien escribe su nombre en el celular y aparece en "EN LA SALA" en la pantalla. Esos nombres salen en los créditos del final. **Se guardan aparte de los votos y sin el identificador del celular**, así que ni el archivo `partida.json` permite saber qué votó cada persona. Hay un campo en la pantalla para anotar a quien no tenga celular.
+El nombre es **obligatorio para entrar**: es lo primero que pide el celular al escanear el QR, antes de poder votar nada. Aparece en "EN LA SALA" en la pantalla y sale en los créditos del final. Hay un campo en la pantalla para anotar a quien no tenga celular.
+
+Que sea obligatorio no rompe el anonimato. Los nombres **se guardan aparte de los votos y sin el identificador del celular**, y además **en posición al azar dentro de la lista**: si se guardaran en orden de llegada, ese orden delataría quién votó primero, porque los votos se guardan en ese mismo orden. Ni el archivo `partida.json` permite atar un nombre a un voto.
 
 Los créditos ruedan solos al llegar al cierre, **en la pantalla grande y en el celular de cada quien a la vez**, con la misma duración (unos 30 segundos) para que terminen juntos. En el celular sale además un **👏 ¡APLAUDE!** parpadeando y el teléfono vibra al entrar al cierre. Quien quiera leerlos con calma toca la pantalla y los créditos se quedan quietos.
 
 En la pantalla grande puedes volver a lanzarlos con el botón 🎬 y disparar aplausos cuando quieras con el botón 👏.
+
+## Empezar de nuevo
+
+El botón **⟲** rojo, arriba a la derecha, borra la partida y la deja en blanco: votos, ideas y nombres. Funciona en cualquier ronda, cuando quieras. Pide **dos toques** para que no se vaya todo por un roce: el primero lo pone en rojo y avisa, el segundo borra. Si tardas más de 8 segundos, se desarma solo.
 
 ## Controles del facilitador
 
@@ -136,7 +142,7 @@ Si abres `public/index.html` directo en el navegador, sin Node, el tablero funci
 
 ## Sobre el anonimato
 
-El servidor nunca pide nombres. A cada celular le toca un identificador al azar, guardado en su navegador, para que pueda cambiar su voto sin votar dos veces. En pantalla solo salen totales. Quien borre los datos de su navegador podría votar otra vez: para un taller interno alcanza, pero no es un sistema de votación formal.
+El nombre y el voto nunca se tocan. A cada celular le toca un identificador al azar, guardado en su navegador, para que pueda cambiar su voto sin votar dos veces. En pantalla solo salen totales. Quien borre los datos de su navegador podría votar otra vez: para un taller interno alcanza, pero no es un sistema de votación formal.
 
 ## Nota de estilo
 
